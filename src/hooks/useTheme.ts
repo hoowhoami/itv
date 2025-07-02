@@ -1,10 +1,11 @@
-import { themeManager } from '../utils/theme-manager';
+import { useColorMode } from '@vueuse/core';
 
 export const useTheme = () => {
-    const { theme, switchTheme } = useThemeManager();
-
-    return {
-        theme,
-        setTheme: switchTheme,
-    };
+  const mode = useColorMode();
+  return {
+    colorMode: mode,
+    switchTheme: (themeName: 'light' | 'dark' | 'auto') => {
+      mode.value = themeName;
+    }
+  };
 };

@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-  import { ref } from 'vue';
+  import { defineOptions, ref } from 'vue';
   import { RouterView, RouterLink } from 'vue-router';
   import { Button, InputSearch } from 'ant-design-vue';
-  import { useDark, useToggle } from '@vueuse/core';
+  import { useCycleList } from '@vueuse/core';
+  import { useTheme } from '@/hooks/useTheme';
+  import SettingsDialog from '@/components/SettingsDialog.vue';
 
   defineOptions({
     name: 'MainLayout'
@@ -15,13 +17,14 @@
     settingVisible.value = true;
   };
 
-  const isDark = useDark();
+  const { next } = useCycleList(['light', 'dark', 'auto'] as const);
+  const { colorMode, switchTheme } = useTheme();
 
   const keyword = ref();
   const onSearch = (value: string) => {
     console.log(value);
-    console.log('isDark', isDark);
-    useToggle(isDark);
+    switchTheme(next());
+    console.log('theme', colorMode.store.value);
   };
 </script>
 
@@ -110,9 +113,8 @@
       </div>
     </footer>
 
-    <SettingsDialog open="showSettings" onOpenChange="setShowSettings" />
+    <SettingsDialog v-model:open="settingVisible" />
     <InitDialog open="showInitDialog" onOpenChange="setShowInitDialog" />
-    <Toaster />
   </div>
 </template>
 
