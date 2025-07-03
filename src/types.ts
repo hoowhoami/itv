@@ -1,9 +1,8 @@
-
 export interface Movie {
   vod_id: string;
   vod_name: string;
   vod_pic: string;
-  vod_play_url:string;
+  vod_play_url: string;
   vod_remarks?: string;
   vod_year?: string;
   vod_area?: string;
@@ -22,4 +21,9 @@ export interface ApiSite {
 export interface SearchHistory {
   term: string;
   timestamp: number;
-} 
+}
+
+export interface Proxy {
+  name?: string;
+  url?: string;
+}

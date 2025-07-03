@@ -1,56 +1,55 @@
 <script lang="ts" setup>
-  import { List, ListItem, Button, Input, RadioGroup, Radio } from 'ant-design-vue';
-  import { ref } from 'vue';
-  import { CheckCircle2, Trash2, Plus } from 'lucide-vue-next';
+  import { List, ListItem, Button, Input, RadioGroup, Radio, Popconfirm } from 'ant-design-vue';
+  import { onMounted, ref } from 'vue';
+  import { Trash2, Plus } from 'lucide-vue-next';
+  import { useProxyState } from '@/store';
+  import { Proxy } from '@/types';
 
-  interface Proxy {
-    name?: string;
-    url?: string;
-  }
+  const proxyStore = useProxyState();
 
   const selectedProxy = ref<Proxy>({
     name: undefined,
     url: undefined
   });
 
-  const proxies = ref<Proxy[]>([
-    {
-      name: 'No Proxy',
-      url: ''
-    },
-    {
-      name: 'Proxy 1',
-      url: 'http://localhost:8080'
-    },
-    {
-      name: 'Proxy 2',
-      url: 'http://localhost:8081'
-    },
-    {
-      name: 'Proxy 3',
-      url: 'http://localhost:8082'
-    }
-  ]);
+  const proxies = proxyStore.getProxies;
 
   const newProxy = ref<Proxy>({
     name: undefined,
     url: undefined
   });
 
-  const handleAddProxy = () => {};
+  const handleAddProxy = () => {
+    if (newProxy.value.name && newProxy.value.url) {
+      proxyStore.addProxy(newProxy.value);
+      newProxy.value = {
+        name: undefined,
+        url: undefined
+      };
+    }
+  };
 
   const handleSelectProxy = () => {
     if (selectedProxy.value) {
-      console.log(selectedProxy.value);
+      proxyStore.selectProxy(selectedProxy.value);
     }
   };
 
   const handleDeleteProxy = (proxy: Proxy) => {
-    const index = proxies.value.indexOf(proxy);
-    if (index > -1) {
-      proxies.value.splice(index, 1);
+    proxyStore.deleteProxy(proxy);
+    initSelectedProxy();
+  };
+
+  const initSelectedProxy = () => {
+    const selected = proxyStore.getSelectedProxy;
+    if (selected) {
+      selectedProxy.value = selected;
     }
   };
+
+  onMounted(() => {
+    initSelectedProxy();
+  });
 </script>
 <template>
   <div>
@@ -60,7 +59,7 @@
           <Input placeholder="代理名称" v-model:value="newProxy.name" allow-clear />
           <Input placeholder="代理地址" v-model:value="newProxy.url" allow-clear />
 
-          <Button class="cursor-pointer" @click="handleAddProxy">
+          <Button @click="handleAddProxy" :disabled="!newProxy.name || !newProxy.url">
             <Plus class="w-4 h-4" />
           </Button>
         </div>
@@ -68,11 +67,11 @@
       </div>
     </div>
     <div class="space-y-2">
-      <RadioGroup v-model:value="selectedProxy.url" @change="handleSelectProxy" style="width: 100%">
+      <RadioGroup v-model:value="selectedProxy" @change="handleSelectProxy" style="width: 100%">
         <List bordered :data-source="proxies" row-key="url">
           <template #renderItem="{ item }">
             <ListItem>
-              <Radio :value="item.url" style="width: 100%">
+              <Radio :value="item" style="width: 100%">
                 <div class="flex items-center justify-between">
                   <div>
                     {{ item.name }}
@@ -81,9 +80,11 @@
                 </div>
               </Radio>
               <template #actions v-if="item.url">
-                <button class="text-gray-400 hover:text-red-500 p-1" @click.stop="handleDeleteProxy(item)">
-                  <Trash2 class="w-4 h-4" />
-                </button>
+                <Popconfirm title="确定要删除吗？" ok-text="确定" cancel-text="取消" @confirm="handleDeleteProxy(item)">
+                  <Button danger>
+                    <Trash2 class="w-4 h-4" />
+                  </Button>
+                </Popconfirm>
               </template>
             </ListItem>
           </template>

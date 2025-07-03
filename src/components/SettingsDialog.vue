@@ -19,9 +19,8 @@
 
   const activeMenuKey = ref('appearance');
 
-  const handleMenuClick = (key: MenuInfo) => {
-    console.log(key);
-    activeMenuKey.value = key.key as string;
+  const handleMenuClick = (info: MenuInfo) => {
+    activeMenuKey.value = info.key as string;
   };
 
   const menuItems = [
