@@ -22,8 +22,3 @@ export interface SearchHistory {
   term: string;
   timestamp: number;
 }
-
-export interface Proxy {
-  name?: string;
-  url?: string;
-}

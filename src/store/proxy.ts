@@ -1,12 +1,16 @@
-import { Proxy } from '@/types';
 import { defineStore } from 'pinia';
+
+export interface Proxy {
+  name?: string;
+  url?: string;
+}
 
 interface ProxyState {
   proxies: Proxy[];
-  selectedProxy?: Proxy;
+  selected?: Proxy;
 }
 
-export const useProxyState = defineStore('proxy', {
+export const useProxyStore = defineStore('proxy', {
   // 持久化
   persist: true,
 
@@ -17,7 +21,7 @@ export const useProxyState = defineStore('proxy', {
         url: ''
       }
     ],
-    selectedProxy: undefined
+    selected: undefined
   }),
 
   // 获取器
@@ -26,7 +30,7 @@ export const useProxyState = defineStore('proxy', {
       return state.proxies;
     },
     getSelectedProxy: (state: ProxyState) => {
-      return state.selectedProxy;
+      return state.selected;
     }
   },
 
@@ -39,18 +43,18 @@ export const useProxyState = defineStore('proxy', {
       const index = this.proxies.indexOf(proxy);
       if (index > -1) {
         this.proxies.splice(index, 1);
-        if (this.selectedProxy && this.selectedProxy.name === proxy.name) {
+        if (this.selected && this.selected.name === proxy.name) {
           if (this.proxies.length > 0) {
-            this.selectedProxy = this.proxies[0];
+            this.selected = this.proxies[0];
           } else {
-            this.selectedProxy = undefined;
+            this.selected = undefined;
           }
         }
       }
     },
     selectProxy(proxy: Proxy) {
       if (this.proxies.includes(proxy)) {
-        this.selectedProxy = proxy;
+        this.selected = proxy;
       }
     }
   }

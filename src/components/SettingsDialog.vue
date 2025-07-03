@@ -6,6 +6,7 @@
   import { MenuInfo } from 'ant-design-vue/es/menu/src/interface';
   import AppearanceSettings from './AppearanceSettings.vue';
   import ProxySettings from './ProxySettings.vue';
+  import ApiSiteSettings from './ApiSiteSettings.vue';
 
   defineOptions({
     name: 'SettingsDialog'
@@ -44,6 +45,7 @@
         <div class="flex-1 h-full p-4 overflow-auto">
           <AppearanceSettings v-if="activeMenuKey === 'appearance'"></AppearanceSettings>
           <ProxySettings v-if="activeMenuKey === 'proxy'"></ProxySettings>
+          <ApiSiteSettings v-if="activeMenuKey === 'site'"></ApiSiteSettings>
         </div>
       </div>
     </div>

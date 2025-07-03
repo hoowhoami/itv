@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-  import { defineOptions, ref } from 'vue';
+  import { defineOptions, onMounted, ref } from 'vue';
   import { RouterView, RouterLink } from 'vue-router';
   import { Button, InputSearch } from 'ant-design-vue';
-  import { useCycleList } from '@vueuse/core';
-  import { useTheme } from '@/hooks/useTheme';
   import SettingsDialog from '@/components/SettingsDialog.vue';
+  import InitDialog from '@/components/InitDialog.vue';
+  import { useAppState } from '@/store';
 
   defineOptions({
     name: 'MainLayout'
@@ -17,15 +17,20 @@
     settingVisible.value = true;
   };
 
-  const { next } = useCycleList(['light', 'dark', 'auto'] as const);
-  const { colorMode, switchTheme } = useTheme();
+  const initVisible = ref(false);
 
   const keyword = ref();
   const onSearch = (value: string) => {
     console.log(value);
-    switchTheme(next());
-    console.log('theme', colorMode.store.value);
   };
+
+  const appStore = useAppState();
+
+  onMounted(() => {
+    if (!appStore.getProxyBaseUrl) {
+      initVisible.value = true;
+    }
+  });
 </script>
 
 <template>
@@ -114,7 +119,7 @@
     </footer>
 
     <SettingsDialog v-model:open="settingVisible" />
-    <InitDialog open="showInitDialog" onOpenChange="setShowInitDialog" />
+    <InitDialog v-model:open="initVisible" />
   </div>
 </template>
 

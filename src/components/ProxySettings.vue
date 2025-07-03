@@ -1,11 +1,15 @@
 <script lang="ts" setup>
   import { List, ListItem, Button, Input, RadioGroup, Radio, Popconfirm } from 'ant-design-vue';
-  import { onMounted, ref } from 'vue';
+  import { defineOptions, onMounted, ref } from 'vue';
   import { Trash2, Plus } from 'lucide-vue-next';
-  import { useProxyState } from '@/store';
-  import { Proxy } from '@/types';
+  import { useProxyStore } from '@/store';
+  import type { Proxy } from '@/store';
 
-  const proxyStore = useProxyState();
+  defineOptions({
+    name: 'ProxySettings'
+  });
+
+  const proxyStore = useProxyStore();
 
   const selectedProxy = ref<Proxy>({
     name: undefined,
