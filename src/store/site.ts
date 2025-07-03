@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia';
 
 export interface Site {
-  name?: string;
-  url?: string;
+  key: string;
+  name: string;
+  api: string;
+  deletable: boolean;
+  speed?: number;
 }
 
 interface SiteState {
@@ -17,20 +20,28 @@ export const useSiteStore = defineStore('site', {
   state: (): SiteState => ({
     sites: [
       {
-        name: 'itv',
-        url: 'https://www.itv.com',
+        key: 'heimuer',
+        api: 'https://json.heimuer.xyz',
+        name: '黑木耳',
+        deletable: false,
       },
       {
-        name: 'bbc',
-        url: 'https://www.bbc.com',
+        key: 'wolong',
+        api: 'https://wolongzyw.com',
+        name: '卧龙资源',
+        deletable: false,
       },
       {
-        name: 'cnn',
-        url: 'https://www.cnn.com',
+        key: 'jisu',
+        api: 'https://jszyapi.com',
+        name: '极速资源',
+        deletable: false,
       },
       {
-        name: 'test',
-        url: 'https://www.test.com',
+        key: 'ffzy5',
+        api: 'http://ffzy5.tv',
+        name: '非凡影视',
+        deletable: false,
       },
     ],
     selected: [],
@@ -50,6 +61,12 @@ export const useSiteStore = defineStore('site', {
   actions: {
     addSite(site: Site) {
       this.sites.push(site);
+    },
+    updateSite(site: Site) {
+      const index = this.sites.indexOf(site);
+      if (index > -1) {
+        this.sites.splice(index, 1, site);
+      }
     },
     deleteSite(site: Site) {
       const index = this.sites.indexOf(site);

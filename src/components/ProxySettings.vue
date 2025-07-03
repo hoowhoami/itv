@@ -1,6 +1,19 @@
 <script lang="ts" setup>
-  import { List, ListItem, Button, Input, RadioGroup, Radio, Popconfirm } from 'ant-design-vue';
-  import { defineOptions, onMounted, ref } from 'vue';
+  import {
+    List,
+    ListItem,
+    Button,
+    Form,
+    FormItem,
+    Input,
+    Modal,
+    RadioGroup,
+    Radio,
+    Popconfirm,
+    Tag,
+    Tooltip,
+  } from 'ant-design-vue';
+  import { onMounted, ref } from 'vue';
   import { Trash2, Plus } from 'lucide-vue-next';
   import { useProxyStore } from '@/store';
   import type { Proxy } from '@/store';
@@ -11,26 +24,44 @@
 
   const proxyStore = useProxyStore();
 
-  const selectedProxy = ref<Proxy>({
-    name: undefined,
-    url: undefined,
-  });
+  const selectedProxy = ref<Proxy>({} as Proxy);
 
   const proxies = proxyStore.getProxies;
 
-  const newProxy = ref<Proxy>({
-    name: undefined,
-    url: undefined,
+  const proxy = ref<Proxy>({
+    deletable: false,
+  } as Proxy);
+
+  const rules = ref({
+    name: [{ required: true, message: '请输入代理名称', trigger: 'change' }],
+    url: [
+      { required: true, message: '请输入代理地址', trigger: 'change' },
+      { pattern: /^https?:\/\/.*/, message: '请输入正确的代理地址', trigger: 'change' },
+    ],
   });
 
+  const editDialogVisible = ref(false);
+
+  const useForm = Form.useForm;
+
+  const { resetFields, validate, validateInfos } = useForm(proxy, rules);
+
   const handleAddProxy = () => {
-    if (newProxy.value.name && newProxy.value.url) {
-      proxyStore.addProxy(newProxy.value);
-      newProxy.value = {
-        name: undefined,
-        url: undefined,
-      };
-    }
+    resetFields();
+    editDialogVisible.value = true;
+  };
+
+  const handleAddProxyConfirm = () => {
+    validate()
+      .then(() => {
+        // 生成代理编码
+        proxy.value.key = Math.random().toString(36).substring(2);
+        proxyStore.addProxy(Object.assign({}, proxy.value));
+        editDialogVisible.value = false;
+      })
+      .catch(() => {
+        // ignore
+      });
   };
 
   const handleSelectProxy = () => {
@@ -58,43 +89,52 @@
 <template>
   <div>
     <div class="mb-6">
-      <div class="space-y-2">
-        <div class="flex gap-2">
-          <Input placeholder="代理名称" v-model:value="newProxy.name" allow-clear />
-          <Input placeholder="代理地址" v-model:value="newProxy.url" allow-clear />
-
-          <Button @click="handleAddProxy" :disabled="!newProxy.name || !newProxy.url">
-            <Plus class="w-4 h-4" />
-          </Button>
-        </div>
-        <div class="text-xs text-gray-500">留空即不代理，代理地址需支持M3U8转发</div>
-      </div>
-    </div>
-    <div class="space-y-2">
-      <RadioGroup v-model:value="selectedProxy" @change="handleSelectProxy" style="width: 100%">
-        <List bordered :data-source="proxies" row-key="name">
-          <template #renderItem="{ item }">
-            <ListItem>
-              <Radio :value="item" style="width: 100%">
-                <div class="flex items-center justify-between">
-                  <div>
-                    {{ item.name }}
-                  </div>
-                  <div class="ml-2 text-xs text-gray-400">{{ item.url }}</div>
+      <List bordered :data-source="proxies" row-key="name">
+        <template #header>
+          <div class="flex gap-2 items-center justify-between">
+            <div class="text-xs text-gray-500">留空即不代理，代理地址需支持M3U8转发</div>
+            <div class="flex items-center gap-2">
+              <Tooltip>
+                <template #title>添加代理</template>
+                <Button @click="handleAddProxy">
+                  <Plus class="w-4 h-4" />
+                </Button>
+              </Tooltip>
+            </div>
+          </div>
+        </template>
+        <RadioGroup v-model:value="selectedProxy" @change="handleSelectProxy" class="w-full">
+          <ListItem v-for="item in proxies" :key="item.key">
+            <Radio :value="item" class="w-full">
+              <div class="flex items-center justify-between">
+                <div>
+                  {{ item.name }}
                 </div>
-              </Radio>
-              <template #actions v-if="item.url">
-                <Popconfirm title="确定要删除吗？" ok-text="确定" cancel-text="取消" @confirm="handleDeleteProxy(item)">
-                  <Button danger>
-                    <Trash2 class="w-4 h-4" />
-                  </Button>
-                </Popconfirm>
-              </template>
-            </ListItem>
-          </template>
-        </List>
-      </RadioGroup>
+                <div class="ml-2 text-xs text-gray-400">{{ item.url }}</div>
+              </div>
+            </Radio>
+            <template #actions>
+              <Popconfirm v-if="item.deletable" title="确定要删除吗？" @confirm="handleDeleteProxy(item)">
+                <Button size="small" type="dashed" danger style="margin-right: 12px">
+                  <Trash2 class="w-4 h-4" />
+                </Button>
+              </Popconfirm>
+              <Tag color="green" v-else>内置</Tag>
+            </template>
+          </ListItem>
+        </RadioGroup>
+      </List>
     </div>
+    <Modal title="添加代理" v-model:open="editDialogVisible" destroy-on-close @ok="handleAddProxyConfirm">
+      <Form>
+        <FormItem label="代理名称" v-bind="validateInfos.name">
+          <Input v-model:value="proxy.name" allow-clear />
+        </FormItem>
+        <FormItem label="代理地址" v-bind="validateInfos.url">
+          <Input v-model:value="proxy.url" allow-clear />
+        </FormItem>
+      </Form>
+    </Modal>
   </div>
 </template>
 <style scoped>

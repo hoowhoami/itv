@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import { defineOptions, onMounted, ref } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { RadioGroup, RadioButton, TypographyText } from 'ant-design-vue';
   import { useTheme } from '@/hooks/useTheme';
   import { Sun, Moon, Monitor } from 'lucide-vue-next';

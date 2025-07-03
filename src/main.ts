@@ -9,8 +9,8 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
 const app = createApp(App);
 app.use(Antd);
-app.use(router); // 使用路由
+app.use(router);
 const pinia = createPinia();
-pinia.use(piniaPluginPersistedstate); // 使用pinia持久化存储
+pinia.use(piniaPluginPersistedstate);
 app.use(pinia);
 app.mount('#app');

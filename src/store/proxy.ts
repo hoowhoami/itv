@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia';
 
 export interface Proxy {
-  name?: string;
-  url?: string;
+  key: string;
+  name: string;
+  url: string;
+  deletable: boolean;
 }
 
 interface ProxyState {
@@ -17,11 +19,13 @@ export const useProxyStore = defineStore('proxy', {
   state: (): ProxyState => ({
     proxies: [
       {
+        key: 'none',
         name: '不代理',
-        url: ''
-      }
+        url: 'unknown',
+        deletable: false,
+      },
     ],
-    selected: undefined
+    selected: undefined,
   }),
 
   // 获取器
@@ -31,7 +35,7 @@ export const useProxyStore = defineStore('proxy', {
     },
     getSelectedProxy: (state: ProxyState) => {
       return state.selected;
-    }
+    },
   },
 
   // 动作
@@ -56,6 +60,6 @@ export const useProxyStore = defineStore('proxy', {
       if (this.proxies.includes(proxy)) {
         this.selected = proxy;
       }
-    }
-  }
+    },
+  },
 });

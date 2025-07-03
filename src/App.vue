@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-background">
-    <config-provider componentSize="middle" :theme="{ algorithm: themeMode }">
+    <config-provider :locale="zhCN" componentSize="middle" :theme="{ algorithm: themeMode }">
       <app>
         <router-view />
         <back-top />
@@ -11,6 +11,7 @@
 
 <script lang="ts" setup>
   import { App, BackTop, ConfigProvider, theme } from 'ant-design-vue';
+  import zhCN from 'ant-design-vue/es/locale/zh_CN';
   import { RouterView } from 'vue-router';
   import { computed } from 'vue';
   import { useColorMode } from '@vueuse/core';
