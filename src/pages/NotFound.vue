@@ -23,7 +23,7 @@
   import { useRouter } from 'vue-router';
   import { LucideHome, LucideArrowLeft } from 'lucide-vue-next';
   defineOptions({
-    name: 'NotFound'
+    name: 'NotFound',
   });
 
   const router = useRouter();

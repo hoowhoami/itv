@@ -4,10 +4,10 @@
   import { Button, InputSearch } from 'ant-design-vue';
   import SettingsDialog from '@/components/SettingsDialog.vue';
   import InitDialog from '@/components/InitDialog.vue';
-  import { useAppState } from '@/store';
+  import { useAppStore } from '@/store';
 
   defineOptions({
-    name: 'MainLayout'
+    name: 'MainLayout',
   });
 
   const year = new Date().getFullYear();
@@ -24,7 +24,7 @@
     console.log(value);
   };
 
-  const appStore = useAppState();
+  const appStore = useAppStore();
 
   onMounted(() => {
     if (!appStore.getProxyBaseUrl) {

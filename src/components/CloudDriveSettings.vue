@@ -1,15 +1,11 @@
 <script lang="ts">
-import {defineComponent} from 'vue'
+  import { defineComponent } from 'vue';
 
-export default defineComponent({
-  name: "CloudDriveSettings"
-})
+  export default defineComponent({
+    name: 'CloudDriveSettings',
+  });
 </script>
 
-<template>
+<template></template>
 
-</template>
-
-<style scoped>
-
-</style>
+<style scoped></style>

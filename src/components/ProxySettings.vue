@@ -6,21 +6,21 @@
   import type { Proxy } from '@/store';
 
   defineOptions({
-    name: 'ProxySettings'
+    name: 'ProxySettings',
   });
 
   const proxyStore = useProxyStore();
 
   const selectedProxy = ref<Proxy>({
     name: undefined,
-    url: undefined
+    url: undefined,
   });
 
   const proxies = proxyStore.getProxies;
 
   const newProxy = ref<Proxy>({
     name: undefined,
-    url: undefined
+    url: undefined,
   });
 
   const handleAddProxy = () => {
@@ -28,7 +28,7 @@
       proxyStore.addProxy(newProxy.value);
       newProxy.value = {
         name: undefined,
-        url: undefined
+        url: undefined,
       };
     }
   };
@@ -72,7 +72,7 @@
     </div>
     <div class="space-y-2">
       <RadioGroup v-model:value="selectedProxy" @change="handleSelectProxy" style="width: 100%">
-        <List bordered :data-source="proxies" row-key="url">
+        <List bordered :data-source="proxies" row-key="name">
           <template #renderItem="{ item }">
             <ListItem>
               <Radio :value="item" style="width: 100%">

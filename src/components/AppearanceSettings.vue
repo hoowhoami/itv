@@ -5,7 +5,7 @@
   import { Sun, Moon, Monitor } from 'lucide-vue-next';
 
   defineOptions({
-    name: 'AppearanceSettings'
+    name: 'AppearanceSettings',
   });
 
   const { colorMode, switchTheme } = useTheme();

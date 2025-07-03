@@ -9,7 +9,7 @@ export const useAppStore = defineStore('app', {
   persist: true,
 
   state: (): AppState => ({
-    PROXY_BASE_URL: undefined
+    PROXY_BASE_URL: undefined,
   }),
 
   // 获取器
@@ -19,7 +19,7 @@ export const useAppStore = defineStore('app', {
     },
     getAppConfig: (state: AppState) => {
       return state;
-    }
+    },
   },
 
   // 动作
@@ -34,6 +34,6 @@ export const useAppStore = defineStore('app', {
     },
     clear() {
       this.PROXY_BASE_URL = undefined;
-    }
-  }
+    },
+  },
 });

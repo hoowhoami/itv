@@ -6,6 +6,6 @@ export const useTheme = () => {
     colorMode: mode,
     switchTheme: (themeName: 'light' | 'dark' | 'auto') => {
       mode.value = themeName;
-    }
+    },
   };
 };

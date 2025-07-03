@@ -4,7 +4,7 @@
   import { AppState, useAppStore } from '@/store';
 
   defineOptions({
-    name: 'InitDialog'
+    name: 'InitDialog',
   });
 
   const modelValue = defineModel<boolean>('open');

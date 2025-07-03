@@ -18,46 +18,46 @@ const routes = [
       {
         path: '', // 默认子路由，访问根路径时显示
         name: 'Home',
-        component: HomePage
+        component: HomePage,
       },
       {
         path: 'appearance-settings',
         name: 'AppearanceSettings',
-        component: AppearanceSettings
+        component: AppearanceSettings,
       },
       {
         path: 'cloud-drive-settings',
         name: 'CloudDriveSettings',
-        component: CloudDriveSettings
+        component: CloudDriveSettings,
       },
       {
         path: 'ai-speed-test',
         name: 'AISpeedTest',
-        component: AISpeedTestPage
+        component: AISpeedTestPage,
       },
       {
         path: 'ai-model-settings',
         name: 'AIModelSettings',
-        component: AIModelSettings
+        component: AIModelSettings,
       },
       {
         path: 'history',
         name: 'History',
-        component: HistoryPage
-      }
-    ]
+        component: HistoryPage,
+      },
+    ],
   },
   // 404 错误处理
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: PageNotFound
-  }
+    component: PageNotFound,
+  },
 ];
 
 const router = createRouter({
   history: createWebHashHistory(),
-  routes
+  routes,
 });
 
 router.beforeEach((to, from, next) => {

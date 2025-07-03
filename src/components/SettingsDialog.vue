@@ -9,7 +9,7 @@
   import ApiSiteSettings from './ApiSiteSettings.vue';
 
   defineOptions({
-    name: 'SettingsDialog'
+    name: 'SettingsDialog',
   });
 
   const modelValue = defineModel<boolean>('open');
@@ -31,7 +31,7 @@
     { key: 'parser', icon: renderMenuIcon(Link), label: '在线解析' },
     { key: 'ai', icon: renderMenuIcon(Bot), label: '模型服务' },
     { key: 'drive', icon: renderMenuIcon(Archive), label: '网盘资源' },
-    { key: 'data', icon: renderMenuIcon(Database), label: '数据管理' }
+    { key: 'data', icon: renderMenuIcon(Database), label: '数据管理' },
   ] as ItemType[];
 </script>
 
