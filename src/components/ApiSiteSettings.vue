@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import { watch, ref, onMounted, computed, h } from 'vue';
+  import { watch, ref, onMounted, computed } from 'vue';
   import {
     Button,
     CheckboxGroup,

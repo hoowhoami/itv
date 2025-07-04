@@ -2,7 +2,7 @@
   import { h, FunctionalComponent, ref, computed, onMounted } from 'vue';
   import type { ItemType } from 'ant-design-vue';
   import { Menu, Modal } from 'ant-design-vue';
-  import { Settings, Server, Database, Bot, Archive, Link, Palette } from 'lucide-vue-next';
+  import { Settings, Server, Database, Archive, Link, Palette } from 'lucide-vue-next';
   import { MenuInfo } from 'ant-design-vue/es/menu/src/interface';
   import AppearanceSettings from './AppearanceSettings.vue';
   import ProxySettings from './ProxySettings.vue';
