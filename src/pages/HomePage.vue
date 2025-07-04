@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+  import DoubanMedia from '@/components/douban/DoubanMedia.vue';
+
   defineOptions({
     name: 'HomePage',
   });

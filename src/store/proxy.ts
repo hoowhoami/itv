@@ -17,15 +17,8 @@ export const useProxyStore = defineStore('proxy', {
   persist: true,
 
   state: (): ProxyState => ({
-    proxies: [
-      {
-        key: 'none',
-        name: '不代理',
-        url: 'unknown',
-        deletable: false,
-      },
-    ],
-    selected: 'none',
+    proxies: [],
+    selected: undefined,
   }),
 
   // 获取器

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue';
   import { RadioGroup, RadioButton, TypographyText } from 'ant-design-vue';
-  import { useTheme } from '@/hooks/useTheme';
+  import { useTheme } from '@/hooks/use-theme';
   import { Sun, Moon, Monitor } from 'lucide-vue-next';
 
   defineOptions({

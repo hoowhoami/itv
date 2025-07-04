@@ -18,7 +18,7 @@
   import { useSiteStore } from '@/store';
   import type { Site } from '@/store';
   import type { CheckboxChangeEvent, CheckboxValueType } from 'ant-design-vue/es/checkbox/interface';
-  import { useProxy } from '@/hooks/useProxy';
+  import { useProxy } from '@/hooks/use-proxy';
 
   defineOptions({
     name: 'ApiSiteSettings',

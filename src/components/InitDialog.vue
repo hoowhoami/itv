@@ -9,6 +9,8 @@
 
   const modelValue = defineModel<boolean>('open');
 
+  const api = defineModel<string>('api');
+
   const appStore = useAppStore();
 
   const closable = computed(() => {
@@ -18,8 +20,6 @@
   const activeKey = ref('text');
 
   const text = ref();
-
-  const api = ref('https://tv-auth.o0oo0o.workers.dev/?key=');
 
   const importLoading = ref(false);
 
@@ -36,7 +36,7 @@
   const importFromApi = async () => {
     try {
       importLoading.value = true;
-      const response = await fetch(api.value);
+      const response = await fetch(api.value as string);
       const data = await response.json();
       handleImportData(data);
       importLoading.value = false;

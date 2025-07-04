@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 
 export interface AppState {
   PROXY_BASE_URL?: string;
+  AUTH_BASE_URL?: string;
 }
 
 export const useAppStore = defineStore('app', {
@@ -10,6 +11,7 @@ export const useAppStore = defineStore('app', {
 
   state: (): AppState => ({
     PROXY_BASE_URL: undefined,
+    AUTH_BASE_URL: undefined,
   }),
 
   // 获取器
@@ -17,8 +19,8 @@ export const useAppStore = defineStore('app', {
     getProxyBaseUrl: (state: AppState) => {
       return state.PROXY_BASE_URL;
     },
-    getAppConfig: (state: AppState) => {
-      return state;
+    getAuthBaseUrl: (state: AppState) => {
+      return state.AUTH_BASE_URL;
     },
   },
 
@@ -31,9 +33,6 @@ export const useAppStore = defineStore('app', {
           (this as Record<string, any>)[key] = value;
         });
       }
-    },
-    clear() {
-      this.PROXY_BASE_URL = undefined;
     },
   },
 });

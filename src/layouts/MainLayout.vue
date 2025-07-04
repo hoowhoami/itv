@@ -2,9 +2,10 @@
   import { onMounted, ref } from 'vue';
   import { RouterView, RouterLink } from 'vue-router';
   import { Button, InputSearch } from 'ant-design-vue';
-  import SettingsDialog from '@/components/SettingsDialog.vue';
+  import SettingsDialog from '@/components/settings/SettingsDialog.vue';
   import InitDialog from '@/components/InitDialog.vue';
   import { useAppStore } from '@/store';
+  import { useConfig } from '@/hooks/use-config';
 
   defineOptions({
     name: 'MainLayout',
@@ -26,7 +27,13 @@
 
   const appStore = useAppStore();
 
-  onMounted(() => {
+  const config = useConfig();
+
+  const api = ref<string>();
+
+  onMounted(async () => {
+    await config.init();
+    api.value = appStore.getAuthBaseUrl;
     if (!appStore.getProxyBaseUrl) {
       initVisible.value = true;
     }
@@ -119,7 +126,7 @@
     </footer>
 
     <SettingsDialog v-model:open="settingVisible" />
-    <InitDialog v-model:open="initVisible" />
+    <InitDialog v-model:open="initVisible" v-model:api="api" />
   </div>
 </template>
 
