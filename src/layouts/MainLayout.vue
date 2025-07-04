@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import { defineOptions, onMounted, ref } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { RouterView, RouterLink } from 'vue-router';
   import { Button, InputSearch } from 'ant-design-vue';
   import SettingsDialog from '@/components/SettingsDialog.vue';

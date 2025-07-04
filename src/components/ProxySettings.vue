@@ -89,14 +89,21 @@
   onMounted(() => {
     initSelectedProxy();
   });
+
+  const formItemLayout = {
+    labelCol: {
+      xs: { span: 24 },
+      sm: { span: 6 },
+    },
+  };
 </script>
 <template>
   <div>
     <div class="mb-6">
-      <List bordered :data-source="proxies" row-key="key">
+      <List bordered row-key="key">
         <template #header>
           <div class="flex gap-2 items-center justify-between">
-            <div class="text-xs text-gray-500">留空即不代理，代理地址需支持M3U8转发</div>
+            <div class="text-xs text-gray-500">代理地址需支持M3U8转发</div>
             <div class="flex items-center gap-2">
               <Tooltip>
                 <template #title>添加代理</template>
@@ -135,7 +142,7 @@
       </List>
     </div>
     <Modal title="添加代理" v-model:open="editDialogVisible" destroy-on-close @ok="handleAddProxyConfirm">
-      <Form>
+      <Form v-bind="formItemLayout">
         <FormItem label="代理名称" v-bind="validateInfos.name">
           <Input v-model:value="proxy.name" allow-clear />
         </FormItem>

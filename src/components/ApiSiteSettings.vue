@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import { watch, ref, onMounted, computed } from 'vue';
+  import { watch, ref, onMounted, computed, h } from 'vue';
   import {
     Button,
     CheckboxGroup,
@@ -147,6 +147,13 @@
     if (speed < 3000) return 'orange';
     return 'red';
   };
+
+  const formItemLayout = {
+    labelCol: {
+      xs: { span: 24 },
+      sm: { span: 6 },
+    },
+  };
 </script>
 <template>
   <div>
@@ -162,8 +169,7 @@
                 <template #title>检测站点接口响应速度</template>
                 <Button
                   @click="handleTestSiteSpeed"
-                  :disabled="!selectedKeys || selectedKeys.length === 0"
-                  :loading="testSpeedLoading"
+                  :disabled="!selectedKeys || selectedKeys.length === 0 || testSpeedLoading"
                 >
                   <HeartPulse class="h-4 w-4" />
                 </Button>
@@ -187,9 +193,11 @@
               </div>
               <div class="flex items-center justify-end gap-10">
                 <div class="ml-2 text-xs text-gray-400">{{ item.api }}</div>
-                <Tag :color="speedTagColor(testSpeedResults.get(item.key))">{{
-                  testSpeedResults.get(item.key) ? `${testSpeedResults.get(item.key)?.toFixed(0)}ms` : 'N/A'
-                }}</Tag>
+                <div class="w-[80px]">
+                  <Tag :color="speedTagColor(testSpeedResults.get(item.key))">{{
+                    testSpeedResults.get(item.key) ? `${testSpeedResults.get(item.key)?.toFixed(0)}ms` : 'N/A'
+                  }}</Tag>
+                </div>
               </div>
             </div>
             <template #actions>
@@ -207,7 +215,7 @@
       </List>
     </div>
     <Modal title="添加站点" v-model:open="editDialogVisible" destroy-on-close @ok="handleAddSiteConfirm">
-      <Form>
+      <Form v-bind="formItemLayout">
         <FormItem label="站点名称" v-bind="validateInfos.name">
           <Input v-model:value="site.name" allow-clear />
         </FormItem>

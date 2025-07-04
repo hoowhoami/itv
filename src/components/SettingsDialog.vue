@@ -8,6 +8,9 @@
   import ProxySettings from './ProxySettings.vue';
   import ApiSiteSettings from './ApiSiteSettings.vue';
   import { useWindowSize } from '@vueuse/core';
+  import OnlineParserSettings from './OnlineParserSettings.vue';
+  import CloudDriveSettings from './CloudDriveSettings.vue';
+  import DataManagement from './DataManagement.vue';
 
   defineOptions({
     name: 'SettingsDialog',
@@ -32,7 +35,6 @@
     { key: 'proxy', icon: renderMenuIcon(Settings), label: '代理设置' },
     { key: 'site', icon: renderMenuIcon(Server), label: '采集站点' },
     { key: 'parser', icon: renderMenuIcon(Link), label: '在线解析' },
-    { key: 'ai', icon: renderMenuIcon(Bot), label: '模型服务' },
     { key: 'drive', icon: renderMenuIcon(Archive), label: '网盘资源' },
     { key: 'data', icon: renderMenuIcon(Database), label: '数据管理' },
   ] as ItemType[];
@@ -69,6 +71,9 @@
           <AppearanceSettings v-if="activeMenuKey === 'appearance'"></AppearanceSettings>
           <ProxySettings v-if="activeMenuKey === 'proxy'"></ProxySettings>
           <ApiSiteSettings v-if="activeMenuKey === 'site'"></ApiSiteSettings>
+          <OnlineParserSettings v-if="activeMenuKey === 'parser'"></OnlineParserSettings>
+          <CloudDriveSettings v-if="activeMenuKey === 'drive'"></CloudDriveSettings>
+          <DataManagement v-if="activeMenuKey === 'data'"></DataManagement>
         </div>
       </div>
     </div>

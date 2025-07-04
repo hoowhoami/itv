@@ -3,8 +3,6 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import MainLayout from '@/layouts/MainLayout.vue';
 import AppearanceSettings from '@/components/AppearanceSettings.vue';
 import CloudDriveSettings from '@/components/CloudDriveSettings.vue';
-import AISpeedTestPage from '@/pages/AISpeedTestPage.vue';
-import AIModelSettings from '@/components/AIModelSettings.vue';
 import HistoryPage from '@/pages/HistoryPage.vue';
 import PageNotFound from '@/pages/NotFound.vue';
 import HomePage from '@/pages/HomePage.vue';
@@ -29,16 +27,6 @@ const routes = [
         path: 'cloud-drive-settings',
         name: 'CloudDriveSettings',
         component: CloudDriveSettings,
-      },
-      {
-        path: 'ai-speed-test',
-        name: 'AISpeedTest',
-        component: AISpeedTestPage,
-      },
-      {
-        path: 'ai-model-settings',
-        name: 'AIModelSettings',
-        component: AIModelSettings,
       },
       {
         path: 'history',

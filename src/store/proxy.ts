@@ -25,7 +25,7 @@ export const useProxyStore = defineStore('proxy', {
         deletable: false,
       },
     ],
-    selected: undefined,
+    selected: 'none',
   }),
 
   // 获取器

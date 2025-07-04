@@ -1,11 +1,11 @@
-<script lang="ts">
-  import { defineComponent } from 'vue';
-
-  export default defineComponent({
+<script lang="ts" setup>
+  defineOptions({
     name: 'CloudDriveSettings',
   });
 </script>
 
-<template></template>
+<template>
+  <div>啥也不是</div>
+</template>
 
 <style scoped></style>

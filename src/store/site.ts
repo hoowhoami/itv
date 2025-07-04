@@ -44,7 +44,7 @@ export const useSiteStore = defineStore('site', {
         deletable: false,
       },
     ],
-    selected: [],
+    selected: ['heimuer', 'wolong', 'jisu', 'ffzy5'],
   }),
 
   // 获取器
