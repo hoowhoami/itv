@@ -13,7 +13,7 @@
     Tag,
     Tooltip,
   } from 'ant-design-vue';
-  import { onMounted, ref } from 'vue';
+  import { onMounted, ref, computed } from 'vue';
   import { Trash2, Plus } from 'lucide-vue-next';
   import { useProxyStore } from '@/store';
   import type { Proxy } from '@/store';
@@ -24,12 +24,16 @@
 
   const proxyStore = useProxyStore();
 
-  const selectedProxy = ref<Proxy>({} as Proxy);
+  const selectedKey = ref<string>();
 
-  const proxies = proxyStore.getProxies;
+  const proxies = computed(() => {
+    return proxyStore.getProxies;
+  });
 
   const proxy = ref<Proxy>({
-    deletable: false,
+    name: '',
+    url: '',
+    deletable: true,
   } as Proxy);
 
   const rules = ref({
@@ -65,8 +69,8 @@
   };
 
   const handleSelectProxy = () => {
-    if (selectedProxy.value) {
-      proxyStore.selectProxy(selectedProxy.value);
+    if (selectedKey.value) {
+      proxyStore.setSelected(selectedKey.value);
     }
   };
 
@@ -76,9 +80,9 @@
   };
 
   const initSelectedProxy = () => {
-    const selected = proxyStore.getSelectedProxy;
+    const selected = proxyStore.getSelectedKey;
     if (selected) {
-      selectedProxy.value = selected;
+      selectedKey.value = selected;
     }
   };
 
@@ -89,7 +93,7 @@
 <template>
   <div>
     <div class="mb-6">
-      <List bordered :data-source="proxies" row-key="name">
+      <List bordered :data-source="proxies" row-key="key">
         <template #header>
           <div class="flex gap-2 items-center justify-between">
             <div class="text-xs text-gray-500">留空即不代理，代理地址需支持M3U8转发</div>
@@ -103,23 +107,28 @@
             </div>
           </div>
         </template>
-        <RadioGroup v-model:value="selectedProxy" @change="handleSelectProxy" class="w-full">
-          <ListItem v-for="item in proxies" :key="item.key">
-            <Radio :value="item" class="w-full">
-              <div class="flex items-center justify-between">
-                <div>
+        <RadioGroup v-model:value="selectedKey" @change="handleSelectProxy" class="w-full">
+          <ListItem v-for="item in proxies" :key="item.key" class="w-full">
+            <div class="flex flex-row items-center justify-between w-full">
+              <div>
+                <Radio :value="item.key" :key="item.key">
                   {{ item.name }}
-                </div>
+                </Radio>
+              </div>
+              <div class="flex items-center justify-end gap-10">
                 <div class="ml-2 text-xs text-gray-400">{{ item.url }}</div>
               </div>
-            </Radio>
+            </div>
+
             <template #actions>
-              <Popconfirm v-if="item.deletable" title="确定要删除吗？" @confirm="handleDeleteProxy(item)">
-                <Button size="small" type="dashed" danger style="margin-right: 12px">
-                  <Trash2 class="w-4 h-4" />
-                </Button>
-              </Popconfirm>
-              <Tag color="green" v-else>内置</Tag>
+              <div class="flex items-center justify-center w-full">
+                <Popconfirm v-if="item.deletable" title="确定要删除吗？" @confirm="handleDeleteProxy(item)">
+                  <Button size="small" type="dashed" danger>
+                    <Trash2 class="w-4 h-4" />
+                  </Button>
+                </Popconfirm>
+                <Tag color="green" v-else>内置</Tag>
+              </div>
             </template>
           </ListItem>
         </RadioGroup>
@@ -138,7 +147,14 @@
   </div>
 </template>
 <style scoped>
-  :deep(.ant-radio-wrapper > span:not(.ant-radio)) {
+  :deep(.ant-list-item-action) {
+    width: 50px;
+  }
+  :deep(.ant-list-item-action > li) {
     width: 100%;
+  }
+
+  :deep(.ant-list-item-action .ant-tag) {
+    margin-inline-end: 0 !important;
   }
 </style>

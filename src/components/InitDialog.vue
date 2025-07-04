@@ -21,6 +21,8 @@
 
   const api = ref('https://tv-auth.o0oo0o.workers.dev/?key=');
 
+  const importLoading = ref(false);
+
   const importFromText = () => {
     try {
       const json = JSON.parse(text.value);
@@ -33,10 +35,13 @@
 
   const importFromApi = async () => {
     try {
+      importLoading.value = true;
       const response = await fetch(api.value);
       const data = await response.json();
       handleImportData(data);
+      importLoading.value = false;
     } catch (e) {
+      importLoading.value = false;
       console.error('Failed to import config from api', e);
       message.error('导入失败，无法从远程接口获取配置');
     }
@@ -84,7 +89,7 @@
           <div>
             <Input v-model:value="api" placeholder="请输入远程接口地址" allow-clear></Input>
             <div class="mt-2">
-              <Button class="w-full" @click="importFromApi" :disabled="!api">导入配置</Button>
+              <Button class="w-full" @click="importFromApi" :disabled="!api" :loading="importLoading">导入配置</Button>
             </div>
           </div>
         </TabPane>

@@ -1,3 +1,4 @@
+import { computed } from 'vue';
 import { defineStore } from 'pinia';
 
 export interface Site {
@@ -5,12 +6,11 @@ export interface Site {
   name: string;
   api: string;
   deletable: boolean;
-  speed?: number;
 }
 
 interface SiteState {
   sites: Site[];
-  selected?: Site[];
+  selected?: string[];
 }
 
 export const useSiteStore = defineStore('site', {
@@ -52,8 +52,13 @@ export const useSiteStore = defineStore('site', {
     getSites: (state: SiteState) => {
       return state.sites;
     },
+    getSelectedKeys: (state: SiteState) => {
+      return state.selected || [];
+    },
     getSelectedSites: (state: SiteState) => {
-      return state.selected;
+      return computed(() => {
+        return state.selected?.map((key) => state.sites.find((site) => site.key === key)) || [];
+      });
     },
   },
 
@@ -62,25 +67,12 @@ export const useSiteStore = defineStore('site', {
     addSite(site: Site) {
       this.sites.push(site);
     },
-    updateSite(site: Site) {
-      const index = this.sites.indexOf(site);
-      if (index > -1) {
-        this.sites.splice(index, 1, site);
-      }
-    },
     deleteSite(site: Site) {
-      const index = this.sites.indexOf(site);
-      if (index > -1) {
-        this.sites.splice(index, 1);
-      }
-      const selectedIndex = this.selected?.indexOf(site);
-      if (selectedIndex && selectedIndex > -1) {
-        this.selected?.splice(selectedIndex, 1);
-      }
+      this.sites = this.sites.filter((item) => item.key !== site.key);
+      this.selected = this.selected?.filter((item) => item !== site.key);
     },
-    setSelected(selected: Site[]) {
-      const filtered = selected.filter((s) => this.sites.includes(s));
-      this.selected = filtered;
+    setSelected(selected: string[]) {
+      this.selected = selected.filter((item) => this.sites.some((site) => site.key === item));
     },
   },
 });

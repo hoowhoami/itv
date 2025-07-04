@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import { watch, ref, onMounted } from 'vue';
+  import { watch, ref, onMounted, computed } from 'vue';
   import {
     Button,
     CheckboxGroup,
@@ -26,22 +26,39 @@
 
   const siteStore = useSiteStore();
 
-  const sites = siteStore.getSites;
+  const sites = computed(() => {
+    return siteStore.getSites;
+  });
 
-  const selected = ref([] as CheckboxValueType[]);
+  const selectedKeys = ref([] as CheckboxValueType[]);
 
   const checkAll = ref(false);
 
   const indeterminate = ref(false);
 
+  watch(
+    () => selectedKeys,
+    (val) => {
+      const selected = val.value;
+      siteStore.setSelected(selected as string[]);
+      checkAll.value = selected.length === sites.value.length;
+      indeterminate.value = selected.length > 0 && selected.length < sites.value.length;
+    },
+    { deep: true }
+  );
+
+  onMounted(() => {
+    initSelectedSites();
+  });
+
   const handleCheckAllChange = (e: CheckboxChangeEvent) => {
-    const checked = e.target.checked ? (sites as Site[]) : [];
-    selected.value = checked as unknown as CheckboxValueType[];
+    const checked = e.target.checked ? sites.value.map((item) => item.key) : [];
+    selectedKeys.value = checked as unknown as CheckboxValueType[];
   };
 
   const initSelectedSites = () => {
-    const checked = siteStore.getSelectedSites;
-    selected.value = checked as unknown as CheckboxValueType[];
+    const checked = siteStore.getSelectedKeys;
+    selectedKeys.value = checked as unknown as CheckboxValueType[];
   };
 
   const handleDeleteSite = (site: Site) => {
@@ -50,6 +67,8 @@
   };
 
   const site = ref<Site>({
+    name: '',
+    api: '',
     deletable: true,
   } as Site);
 
@@ -85,28 +104,40 @@
       });
   };
 
+  const testSpeedLoading = ref(false);
+
+  const testSpeedResults = ref<Map<string, number | undefined>>(new Map<string, number | undefined>());
+
   const { fetchWithProxy } = useProxy();
 
   const handleTestSiteSpeed = async () => {
-    console.log('test site speed');
-    await Promise.all(
-      (selected.value as unknown as Site[])?.map(async (site) => {
-        const targetUrl = `${site.api}/api.php/provide/vod/?ac=detail&wd=${encodeURIComponent('仙逆')}`;
-        const startTime = performance.now();
-        try {
-          const response = await fetchWithProxy(targetUrl);
-          if (!response.ok) throw new Error('Network response was not ok');
-          await response.json();
-          const endTime = performance.now();
-          const responseTime = endTime - startTime;
-          site.speed = responseTime;
-          siteStore.updateSite(site);
-        } catch {
-          site.speed = undefined;
-          siteStore.updateSite(site);
-        }
-      })
-    );
+    // clear results
+    testSpeedResults.value.clear();
+    // get all selected
+    const selectedSites = siteStore.getSelectedSites;
+    if (selectedSites.value.length > 0) {
+      testSpeedLoading.value = true;
+      // test speed
+      await Promise.all(
+        selectedSites.value.map(async (site) => {
+          if (site) {
+            const targetUrl = `${site.api}/api.php/provide/vod/?ac=detail&wd=${encodeURIComponent('仙逆')}`;
+            const startTime = performance.now();
+            try {
+              const response = await fetchWithProxy(targetUrl);
+              if (!response.ok) throw new Error('Network response was not ok');
+              await response.json();
+              const endTime = performance.now();
+              const responseTime = endTime - startTime;
+              testSpeedResults.value?.set(site.key, responseTime);
+            } catch {
+              testSpeedResults.value?.set(site.key, undefined);
+            }
+          }
+        })
+      );
+      testSpeedLoading.value = false;
+    }
   };
 
   const speedTagColor = (speed: number | undefined) => {
@@ -116,25 +147,11 @@
     if (speed < 3000) return 'orange';
     return 'red';
   };
-
-  watch(
-    () => selected,
-    (val) => {
-      siteStore.setSelected(val.value as unknown as Site[]);
-      checkAll.value = val.value.length === sites.length;
-      indeterminate.value = val.value.length > 0 && val.value.length < sites.length;
-    },
-    { deep: true }
-  );
-
-  onMounted(() => {
-    initSelectedSites();
-  });
 </script>
 <template>
   <div>
     <div class="mb-6">
-      <List bordered row-key="name" class="w-full">
+      <List bordered row-key="key" class="w-full">
         <template #header>
           <div class="flex items-center justify-between">
             <Checkbox v-model:checked="checkAll" :indeterminate="indeterminate" @change="handleCheckAllChange"
@@ -143,7 +160,11 @@
             <div class="flex items-center gap-2">
               <Tooltip>
                 <template #title>检测站点接口响应速度</template>
-                <Button @click="handleTestSiteSpeed">
+                <Button
+                  @click="handleTestSiteSpeed"
+                  :disabled="!selectedKeys || selectedKeys.length === 0"
+                  :loading="testSpeedLoading"
+                >
                   <HeartPulse class="h-4 w-4" />
                 </Button>
               </Tooltip>
@@ -156,24 +177,30 @@
             </div>
           </div>
         </template>
-        <CheckboxGroup v-model:value="selected" class="w-full">
+        <CheckboxGroup v-model:value="selectedKeys">
           <ListItem v-for="item in sites" :key="item.key" class="w-full">
-            <Checkbox :value="item" style="width: 100%">
-              <div class="flex items-center justify-between">
-                <div>
+            <div class="flex flex-row items-center justify-between w-full">
+              <div>
+                <Checkbox :value="item.key" :key="item.key">
                   {{ item.name }}
-                </div>
-                <div class="ml-2 text-xs text-gray-400">{{ item.api }}</div>
-                <Tag :color="speedTagColor(item.speed)">{{ item.speed ? `${item.speed.toFixed(0)}ms` : 'N/A' }}</Tag>
+                </Checkbox>
               </div>
-            </Checkbox>
+              <div class="flex items-center justify-end gap-10">
+                <div class="ml-2 text-xs text-gray-400">{{ item.api }}</div>
+                <Tag :color="speedTagColor(testSpeedResults.get(item.key))">{{
+                  testSpeedResults.get(item.key) ? `${testSpeedResults.get(item.key)?.toFixed(0)}ms` : 'N/A'
+                }}</Tag>
+              </div>
+            </div>
             <template #actions>
-              <Popconfirm v-if="item.deletable" title="确定要删除吗？" @confirm="handleDeleteSite(item)">
-                <Button size="small" type="dashed" danger style="margin-right: 12px">
-                  <Trash2 class="w-4 h-4" />
-                </Button>
-              </Popconfirm>
-              <Tag v-else color="green">内置</Tag>
+              <div class="flex items-center justify-center w-full">
+                <Popconfirm v-if="item.deletable" title="确定要删除吗？" @confirm="handleDeleteSite(item)">
+                  <Button size="small" type="dashed" danger>
+                    <Trash2 class="w-4 h-4" />
+                  </Button>
+                </Popconfirm>
+                <Tag v-else color="green">内置</Tag>
+              </div>
             </template>
           </ListItem>
         </CheckboxGroup>
@@ -192,7 +219,14 @@
   </div>
 </template>
 <style scoped>
-  :deep(.ant-checkbox-wrapper > span:not(.ant-checkbox)) {
+  :deep(.ant-list-item-action) {
+    width: 50px;
+  }
+  :deep(.ant-list-item-action > li) {
     width: 100%;
+  }
+
+  :deep(.ant-list-item-action .ant-tag) {
+    margin-inline-end: 0 !important;
   }
 </style>

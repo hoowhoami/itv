@@ -9,7 +9,7 @@ export interface Proxy {
 
 interface ProxyState {
   proxies: Proxy[];
-  selected?: Proxy;
+  selected?: string;
 }
 
 export const useProxyStore = defineStore('proxy', {
@@ -33,7 +33,7 @@ export const useProxyStore = defineStore('proxy', {
     getProxies: (state: ProxyState) => {
       return state.proxies;
     },
-    getSelectedProxy: (state: ProxyState) => {
+    getSelectedKey: (state: ProxyState) => {
       return state.selected;
     },
   },
@@ -44,21 +44,18 @@ export const useProxyStore = defineStore('proxy', {
       this.proxies.push(proxy);
     },
     deleteProxy(proxy: Proxy) {
-      const index = this.proxies.indexOf(proxy);
-      if (index > -1) {
-        this.proxies.splice(index, 1);
-        if (this.selected && this.selected.name === proxy.name) {
-          if (this.proxies.length > 0) {
-            this.selected = this.proxies[0];
-          } else {
-            this.selected = undefined;
-          }
+      this.proxies = this.proxies.filter((p) => p.key !== proxy.key);
+      if (this.selected === proxy.key) {
+        if (this.proxies.length > 0) {
+          this.selected = this.proxies[0].key;
+        } else {
+          this.selected = undefined;
         }
       }
     },
-    selectProxy(proxy: Proxy) {
-      if (this.proxies.includes(proxy)) {
-        this.selected = proxy;
+    setSelected(selected: string) {
+      if (this.proxies.some((item) => item.key === selected)) {
+        this.selected = selected;
       }
     },
   },
