@@ -1,11 +1,12 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue';
   import { RouterView, RouterLink } from 'vue-router';
-  import { Button, InputSearch } from 'ant-design-vue';
+  import { Button } from 'ant-design-vue';
   import SettingsDialog from '@/components/settings/SettingsDialog.vue';
   import InitDialog from '@/components/InitDialog.vue';
   import { useAppStore } from '@/store';
   import { useConfig } from '@/hooks/use-config';
+  import SearchForm from '@/components/SearchForm.vue';
 
   defineOptions({
     name: 'MainLayout',
@@ -21,9 +22,6 @@
   const initVisible = ref(false);
 
   const keyword = ref();
-  const onSearch = (value: string) => {
-    console.log(value);
-  };
 
   const appStore = useAppStore();
 
@@ -52,13 +50,7 @@
           </div>
 
           <div class="flex-1 max-w-2xl mx-2">
-            <input-search
-              class="h-8 pl-7 pr-10 border-border/50 bg-background/50 focus:bg-background focus:border-primary/50"
-              v-model:value="keyword"
-              allow-clear
-              @search="onSearch"
-              placeholder="搜索电影、电视剧、视频地址、m3u8地址..."
-            />
+            <SearchForm v-model:value="keyword" />
           </div>
 
           <div class="flex items-center gap-2">

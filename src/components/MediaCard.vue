@@ -26,11 +26,11 @@
           </div>
         </Badge>
       </div>
-      <!-- 站点：左下角 -->
-      <div v-if="props.site" class="absolute bottom-2 right-2">
+      <!-- 来源：左下角 -->
+      <div v-if="props.source" class="absolute bottom-2 right-2">
         <Badge class="bg-black/70 text-white border-1 border-white/30 rounded">
           <div class="text-xs flex items-center px-2 py-0.5">
-            {{ props.site }}
+            {{ props.source }}
           </div>
         </Badge>
       </div>
@@ -46,8 +46,8 @@
       </div>
     </div>
     <div
-      v-if="props.year || props.type || props.area"
-      class="bg-black/80 text-gray-400 border-t border-gray-700 h-12 flex items-center justify-between overflow-hidden"
+      v-if="props.year || props.type || props.region"
+      class="bg-black/80 text-gray-400 border-t border-gray-700 h-12 flex items-center justify-between overflow-hidden px-2"
     >
       <div v-if="props.type" class="text-xs">
         {{ props.type }}
@@ -55,8 +55,8 @@
       <div v-if="props.year" class="text-xs">
         {{ props.year }}
       </div>
-      <div v-if="props.area" class="text-xs">
-        {{ props.area }}
+      <div v-if="props.region" class="text-xs">
+        {{ props.region }}
       </div>
     </div>
   </div>
@@ -101,7 +101,7 @@
       default: '',
     },
     // 地区
-    area: {
+    region: {
       type: String,
       default: '',
     },
@@ -110,8 +110,8 @@
       type: String,
       default: '',
     },
-    // 站点
-    site: {
+    // 来源
+    source: {
       type: String,
       default: '',
     },
@@ -145,6 +145,9 @@
 </script>
 
 <style scoped>
+  :deep(.ant-badge) {
+    color: rgba(255, 255, 255, 0.85);
+  }
   /* 滚动动画 */
   @keyframes scroll {
     0% {

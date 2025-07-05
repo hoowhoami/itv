@@ -1,6 +1,8 @@
 // src/router/index.ts
 import { createRouter, createWebHashHistory } from 'vue-router';
 import MainLayout from '@/layouts/MainLayout.vue';
+import SearchResultPage from '@/pages/SearchResultPage.vue';
+import PlayerPage from '@/pages/PlayerPage.vue';
 import HistoryPage from '@/pages/HistoryPage.vue';
 import PageNotFound from '@/pages/NotFound.vue';
 import HomePage from '@/pages/HomePage.vue';
@@ -15,6 +17,16 @@ const routes = [
         path: '', // 默认子路由，访问根路径时显示
         name: 'Home',
         component: HomePage,
+      },
+      {
+        path: 'search',
+        name: 'Search',
+        component: SearchResultPage,
+      },
+      {
+        path: 'play',
+        name: 'Play',
+        component: PlayerPage,
       },
       {
         path: 'history',

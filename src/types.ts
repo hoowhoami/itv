@@ -7,6 +7,7 @@ export interface Movie {
   vod_year?: string;
   vod_area?: string;
   type_name?: string;
+  vod_score?: string;
   source?: string;
   sourceName?: string;
 }
