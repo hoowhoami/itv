@@ -721,7 +721,7 @@
     </div>
     <div v-else class="min-h-screen bg-background">
       <div class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           <div class="lg:col-span-2 space-y-6">
             <div class="h-[250px] xl:h-[600px] bg-black rounded-lg overflow-hidden">
               <div
@@ -863,7 +863,7 @@
             </Card>
           </div>
 
-          <div class="flex flex-col gap-8">
+          <div class="flex flex-col gap-8 min-w-[480px]">
             <!-- 剧集列表 -->
             <Card class="border-border/50 bg-card/50">
               <div class="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
@@ -1282,131 +1282,5 @@
     font-size: 13px !important;
     white-space: nowrap !important;
     min-width: fit-content !important;
-  }
-
-  /* 移动端适配 */
-  @media (max-width: 768px) {
-    /* 播放页面布局调整 */
-    .player-page .flex.gap-8 {
-      flex-direction: column !important;
-      gap: 16px !important;
-    }
-
-    /* 剧集标签移动端适配 */
-    .episode-tag {
-      height: 28px !important;
-      min-width: 40px !important;
-      font-size: 12px !important;
-    }
-
-    /* 采集站按钮移动端适配 */
-    .source-button {
-      min-height: 40px !important;
-      font-size: 12px !important;
-    }
-
-    .source-button-text {
-      font-size: 12px !important;
-    }
-
-    .source-buttons-container {
-      gap: 8px;
-    }
-
-    /* 网格布局调整 */
-    .grid-cols-4 {
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    }
-
-    .grid-cols-5 {
-      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    }
-
-    .grid-cols-6 {
-      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    }
-
-    /* 卡片间距调整 */
-    .gap-8 {
-      gap: 16px !important;
-    }
-
-    /* 内边距调整 */
-    .px-4 {
-      padding-left: 12px !important;
-      padding-right: 12px !important;
-    }
-
-    .py-8 {
-      padding-top: 16px !important;
-      padding-bottom: 16px !important;
-    }
-  }
-
-  /* 小屏幕适配 */
-  @media (max-width: 480px) {
-    /* 剧集标签小屏幕适配 */
-    .episode-tag {
-      height: 24px !important;
-      min-width: 36px !important;
-      font-size: 11px !important;
-    }
-
-    /* 采集站按钮小屏幕适配 */
-    .source-button {
-      min-height: 36px !important;
-      font-size: 11px !important;
-    }
-
-    .source-button-text {
-      font-size: 11px !important;
-    }
-
-    .source-button-icon,
-    .source-button-arrow {
-      width: 12px !important;
-      height: 12px !important;
-    }
-
-    .source-buttons-container {
-      gap: 6px;
-    }
-
-    /* 网格布局进一步调整 */
-    .grid-cols-4,
-    .grid-cols-5,
-    .grid-cols-6 {
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    }
-
-    /* 间距进一步缩小 */
-    .gap-2 {
-      gap: 4px !important;
-    }
-
-    .gap-4 {
-      gap: 8px !important;
-    }
-
-    /* 内边距进一步调整 */
-    .px-4 {
-      padding-left: 8px !important;
-      padding-right: 8px !important;
-    }
-
-    .py-8 {
-      padding-top: 12px !important;
-      padding-bottom: 12px !important;
-    }
-
-    /* 按钮图标和文字大小调整 */
-    .player-page button.ant-btn .icon-text-row svg {
-      width: 12px !important;
-      height: 12px !important;
-    }
-
-    .player-page button.ant-btn .icon-text-row span {
-      font-size: 11px !important;
-    }
   }
 </style>

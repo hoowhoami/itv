@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-background">
     <config-provider :locale="zhCN" componentSize="middle" :theme="{ algorithm: themeMode }">
       <app>
-        <router-view />
+        <router-view :key="route.fullPath" />
         <back-top />
       </app>
     </config-provider>
@@ -12,9 +12,11 @@
 <script lang="ts" setup>
   import { App, BackTop, ConfigProvider, theme } from 'ant-design-vue';
   import zhCN from 'ant-design-vue/es/locale/zh_CN';
-  import { RouterView } from 'vue-router';
+  import { RouterView, useRoute } from 'vue-router';
   import { computed } from 'vue';
   import { useColorMode } from '@vueuse/core';
+
+  const route = useRoute();
 
   const { darkAlgorithm, defaultAlgorithm } = theme;
   const { system, store } = useColorMode();

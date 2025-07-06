@@ -3,7 +3,7 @@ import { useProxy } from '@/hooks/use-proxy';
 import { useIntersectionObserver } from '@vueuse/core';
 
 // 定义类型
-interface MediaItem {
+export interface MediaItem {
   id: string;
   title: string;
   cover: string;

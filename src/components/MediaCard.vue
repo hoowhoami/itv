@@ -1,7 +1,7 @@
 <template>
   <!-- 卡片容器：控制尺寸、阴影、圆角 -->
   <div
-    class="media-card w-48 h-[350px] rounded-md overflow-hidden relative flex flex-col justify-between cursor-pointer"
+    class="media-card w-full min-w-[172px] h-[350px] rounded-md overflow-hidden relative flex flex-col justify-between cursor-pointer"
   >
     <!-- 海报+内容区 -->
     <div class="relative flex-1 bg-cover bg-center media-poster" :style="{ backgroundImage: `url(${props.cover})` }">
@@ -144,71 +144,64 @@
 </script>
 
 <style scoped>
-  /* 媒体卡片样式 - 使用Ant Design Vue主题变量，深色模式适配 */
+  /* 媒体卡片样式 */
   .media-card {
-    background: var(--ant-color-bg-container) !important;
-    border: 1px solid var(--ant-color-border) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-    transition: all 0.2s ease !important;
+    background: color-mix(in oklch, rgb(var(--color-card)), white 8%);
+    border: 1px solid color-mix(in oklch, rgb(var(--color-border)), white 20%);
+    box-shadow:
+      0 4px 12px 0 rgb(0 0 0 / 0.2),
+      0 2px 6px -1px rgb(0 0 0 / 0.15);
+    transition: all 0.2s ease;
   }
 
   .media-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
-    transform: translateY(-2px) !important;
-    border-color: var(--ant-color-primary-border) !important;
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.1),
+      0 4px 6px -4px rgb(0 0 0 / 0.1);
+    border-color: rgb(var(--color-primary) / 0.5);
+    transform: translateY(-2px);
   }
 
   /* 海报区域 */
   .media-poster {
-    background-color: var(--ant-color-fill-quaternary) !important;
+    background-color: rgb(var(--color-muted));
   }
 
   /* 徽章样式 */
   .media-badge {
-    background: rgba(0, 0, 0, 0.7) !important;
-    color: white !important;
-    border-radius: 6px !important;
-    backdrop-filter: blur(4px) !important;
-  }
-
-  .rate-badge {
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  }
-
-  .info-badge {
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  }
-
-  .source-badge {
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background: rgb(0 0 0 / 0.7);
+    color: white;
+    border-radius: 0.375rem;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgb(255 255 255 / 0.2);
   }
 
   /* 新片标签 */
   .media-tag {
-    position: absolute !important;
-    top: 8px !important;
-    left: 8px !important;
-    background: #ff4d4f !important;
-    color: #ffffff !important;
-    font-size: 12px !important;
-    padding: 2px 8px !important;
-    border-radius: 6px !important;
-    font-weight: 500 !important;
-    z-index: 10 !important;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #ff4d4f;
+    color: #ffffff;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    z-index: 10;
   }
 
   /* 标题区域 */
   .media-title-area {
-    background: var(--ant-color-bg-container) !important;
-    color: var(--ant-color-text) !important;
-    border-top: 1px solid var(--ant-color-border) !important;
+    background: rgb(var(--color-background));
+    color: rgb(var(--color-foreground));
+    border-top: 1px solid rgb(var(--color-border));
   }
 
   /* 信息区域 */
   .media-info-area {
-    background: var(--ant-color-fill-quaternary) !important;
-    color: var(--ant-color-text-secondary) !important;
-    border-top: 1px solid var(--ant-color-border) !important;
+    background: rgb(var(--color-muted));
+    color: rgb(var(--color-muted-foreground));
+    border-top: 1px solid rgb(var(--color-border));
   }
 
   /* 滚动动画 */
@@ -228,56 +221,5 @@
   /* 鼠标悬停时暂停动画 */
   .animate-scroll:hover {
     animation-play-state: paused;
-  }
-
-  /* 移动端适配 */
-  @media (max-width: 768px) {
-    .media-card {
-      width: 160px !important;
-      height: 280px !important;
-    }
-
-    .media-title-area,
-    .media-info-area {
-      height: 10px !important;
-      font-size: 12px !important;
-    }
-
-    .media-badge {
-      font-size: 10px !important;
-      padding: 1px 4px !important;
-    }
-
-    .media-tag {
-      font-size: 10px !important;
-      padding: 1px 6px !important;
-    }
-  }
-
-  /* 小屏幕适配 */
-  @media (max-width: 480px) {
-    .media-card {
-      width: 140px !important;
-      height: 240px !important;
-    }
-
-    .media-title-area,
-    .media-info-area {
-      height: 8px !important;
-      font-size: 11px !important;
-      padding: 0 8px !important;
-    }
-
-    .media-badge {
-      font-size: 9px !important;
-      padding: 1px 3px !important;
-    }
-
-    .media-tag {
-      font-size: 9px !important;
-      padding: 1px 4px !important;
-      top: 6px !important;
-      left: 6px !important;
-    }
   }
 </style>

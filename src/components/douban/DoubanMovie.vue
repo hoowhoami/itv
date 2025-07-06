@@ -1,8 +1,10 @@
 <script lang="ts" setup>
   import { onMounted, ref, toRef } from 'vue';
   import { useDoubanMedia } from './hooks/use-douban-media';
+  import type { MediaItem } from './hooks/use-douban-media';
   import { RadioGroup, RadioButton, Spin } from 'ant-design-vue';
   import MediaCard from '../MediaCard.vue';
+  import { useRouter } from 'vue-router';
 
   defineOptions({
     name: 'DoubanMovie',
@@ -23,9 +25,16 @@
 
   const activeCategory = ref<string>();
   const movieRef = ref<HTMLElement>();
+  const router = useRouter();
 
-  const handleMediaClick = (title: string) => {
-    console.log('click media', title);
+  const handleMediaClick = (media: MediaItem) => {
+    router.push({
+      path: '/search',
+      query: {
+        q: media.title,
+        t: Date.now(),
+      },
+    });
   };
 
   const { loading, list } = useDoubanMedia('movie', toRef(activeCategory), toRef(movieRef));
@@ -44,7 +53,9 @@
       </RadioGroup>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 justify-items-center">
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center"
+    >
       <MediaCard
         v-for="item in list"
         :key="item.id"
@@ -52,7 +63,7 @@
         :cover="item.cover"
         :rate="item.rate"
         :tag="item.is_new ? '新片' : ''"
-        @click="handleMediaClick(item.title)"
+        @click="handleMediaClick(item)"
       />
     </div>
     <div ref="movieRef" class="w-full py-8 flex justify-center">
@@ -60,35 +71,4 @@
     </div>
   </div>
 </template>
-<style scoped>
-  /* 确保MediaCard在grid中居中显示 */
-  .grid {
-    place-items: center;
-  }
-
-  /* 移动端网格适配 */
-  @media (max-width: 768px) {
-    .grid-cols-2 {
-      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-
-    .md\:grid-cols-4 {
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    }
-
-    .lg\:grid-cols-6 {
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .grid-cols-2 {
-      grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-    }
-
-    .md\:grid-cols-4,
-    .lg\:grid-cols-6 {
-      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-  }
-</style>
+<style scoped></style>

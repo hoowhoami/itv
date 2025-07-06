@@ -1,11 +1,12 @@
-import { useAppStore, useProxyStore, useSiteStore, useParserStore } from '@/store';
-import { INTERNAL_APP_CONFIG, INTERNAL_PROXIES, INTERNAL_API_SITES, INTERNAL_PARSERS } from '@/config';
+import { useAppStore, useProxyStore, useSiteStore, useParserStore, useDriveStore } from '@/store';
+import { INTERNAL_APP_CONFIG, INTERNAL_PROXIES, INTERNAL_API_SITES, INTERNAL_PARSERS, INTERNAL_DRIVES } from '@/config';
 
 export const useConfig = () => {
   const appStore = useAppStore();
   const proxyStore = useProxyStore();
   const siteStore = useSiteStore();
   const parserStore = useParserStore();
+  const driveStore = useDriveStore();
 
   return {
     init: async () => {
@@ -16,6 +17,7 @@ export const useConfig = () => {
             AUTH_BASE_URL,
           });
         }
+
         if (INTERNAL_PROXIES.length && !proxyStore.getProxies.length) {
           INTERNAL_PROXIES.forEach((proxy) => {
             proxyStore.addProxy(proxy);
@@ -33,6 +35,12 @@ export const useConfig = () => {
             parserStore.addParser(parser);
           });
         }
+        if (INTERNAL_DRIVES.length && !driveStore.getDrives.length) {
+          INTERNAL_DRIVES.forEach((drive) => {
+            driveStore.addDrive(drive);
+          });
+        }
+
         resolve(true);
       });
     },

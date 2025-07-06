@@ -134,6 +134,11 @@ export const usePlayHistoryStore = defineStore(
       return playHistory.value.slice(0, limit).sort((a, b) => b.timestamp - a.timestamp);
     };
 
+    // 获取所有播放历史记录（用于历史页面显示）
+    const getAllPlayHistory = () => {
+      return playHistory.value.sort((a, b) => b.timestamp - a.timestamp);
+    };
+
     // 设置自动播放下一集
     const setAutoPlayNext = (enabled: boolean) => {
       autoPlayNext.value = enabled;
@@ -154,6 +159,7 @@ export const usePlayHistoryStore = defineStore(
       // 方法
       addPlayHistory,
       getPlayHistory,
+      getAllPlayHistory,
       updateSortOrder,
       updateSkipSettings,
       updateEpisodeProgress,

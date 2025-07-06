@@ -1,25 +1,23 @@
 <script lang="ts" setup>
   import { InputSearch, Button } from 'ant-design-vue';
-  import { onMounted, ref, watch } from 'vue';
+  import { ref, computed } from 'vue';
   import { Trash2 } from 'lucide-vue-next';
   import { useRouter } from 'vue-router';
+  import { useSearchHistoryStore } from '@/store';
 
   defineOptions({
     name: 'SearchForm',
   });
 
-  // 定义历史搜索记录的类型
-  interface SearchHistory {
-    term: string;
-    timestamp: number;
-  }
-
   const inputRef = ref<HTMLInputElement>();
   const modelValue = defineModel('value', { default: '' });
   const showHistory = ref(false);
-  const searchHistory = ref<SearchHistory[]>([]);
 
   const router = useRouter();
+  const searchHistoryStore = useSearchHistoryStore();
+
+  // 使用 computed 来获取搜索历史
+  const searchHistory = computed(() => searchHistoryStore.getSearchHistory());
 
   const handleFocus = () => {
     showHistory.value = true;
@@ -82,14 +80,12 @@
 
   // 添加搜索历史
   const addToSearchHistory = (term: string) => {
-    const filtered = searchHistory.value?.filter((item) => item.term !== term);
-    const newHistory = [{ term, timestamp: Date.now() }, ...filtered].slice(0, 10);
-    searchHistory.value = newHistory;
+    searchHistoryStore.addToSearchHistory(term);
   };
 
   // 清除搜索历史
   const clearSearchHistory = () => {
-    searchHistory.value = [];
+    searchHistoryStore.clearSearchHistory();
   };
 
   // 从搜索历史中搜索
@@ -97,33 +93,6 @@
     modelValue.value = term;
     handleSearch(term);
   };
-
-  onMounted(() => {
-    try {
-      const history = localStorage.getItem('search-history');
-      if (history) {
-        searchHistory.value = JSON.parse(history);
-      }
-    } catch (error) {
-      console.error('Error loading search history:', error);
-    }
-  });
-
-  watch(
-    () => searchHistory.value,
-    (newHistory) => {
-      try {
-        if (newHistory.length === 0) {
-          localStorage.removeItem('search-history');
-        } else {
-          localStorage.setItem('search-history', JSON.stringify(newHistory));
-        }
-      } catch (error) {
-        console.error('Error saving search history:', error);
-      }
-    },
-    { deep: true }
-  );
 </script>
 <template>
   <div class="search-form relative">

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue';
-  import { RouterView, RouterLink } from 'vue-router';
+  import { RouterView, RouterLink, useRoute } from 'vue-router';
   import { Button } from 'ant-design-vue';
   import SettingsDialog from '@/components/settings/SettingsDialog.vue';
   import InitDialog from '@/components/InitDialog.vue';
@@ -28,6 +28,8 @@
   const config = useConfig();
 
   const api = ref<string>();
+
+  const route = useRoute();
 
   onMounted(async () => {
     await config.init();
@@ -73,7 +75,7 @@
     <div class="h-[56px]" />
 
     <main>
-      <router-view />
+      <router-view :key="route.fullPath" />
     </main>
 
     <footer class="hidden md:block bg-muted/30 mt-16 border-t border-border/30">
