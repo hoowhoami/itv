@@ -2,7 +2,8 @@
   import { computed, onMounted, ref, watch } from 'vue';
   import Tabs from '@/components/Tabs/index.vue';
   import TabPanel from '@/components/Tabs/TabPanel.vue';
-  import { RadioButton, RadioGroup, Spin, message } from 'ant-design-vue';
+  import { RadioButton, RadioGroup, Spin, message, Badge } from 'ant-design-vue';
+  import { Filter, Search } from 'lucide-vue-next';
   import MediaCard from '@/components/MediaCard.vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useSiteStore } from '@/store';
@@ -171,43 +172,48 @@
 
       <Tabs v-if="movieResults.length > 0 || cloudResults.length > 0" v-model:activeKey="activeKey">
         <TabPanel tab="movie" :label="`影视作品 (${movieResults.length})`">
-          <div v-if="loading" class="flex items-center justify-center py-12">
-            <Spin :spinning="loading" tip="正在搜索影视作品..." />
-          </div>
-          <div v-else class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <MediaCard
-              v-for="item in movieResults"
-              :key="item.id"
-              :title="item.title"
-              :cover="item.poster"
-              :rate="item.rate"
-              :year="item.year"
-              :region="item.region"
-              :type="item.type"
-              :remark="item.vod_remarks"
-              :source="item.source"
-              @click="handleMediaClick(item)"
-            />
+          <div class="pt-4">
+            <div v-if="loading" class="flex items-center justify-center py-12">
+              <Spin :spinning="loading" tip="正在搜索影视作品..." />
+            </div>
+            <div v-else class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 justify-items-between">
+              <MediaCard
+                v-for="item in movieResults"
+                :key="item.id"
+                :title="item.title"
+                :cover="item.poster"
+                :rate="item.rate"
+                :year="item.year"
+                :region="item.region"
+                :type="item.type"
+                :remark="item.vod_remarks"
+                :source="item.source"
+                @click="handleMediaClick(item)"
+              />
+            </div>
           </div>
         </TabPanel>
         <TabPanel tab="cloud" :label="`网盘资源 (${cloudResults.length})`">
-          <div v-if="cloudLoading" class="flex items-center justify-center py-12">
-            <Spin :spinning="cloudLoading" tip="正在搜索网盘资源..." />
-          </div>
-          <div v-if="cloudResults.length > 0" class="mb-4">
-            <div class="flex items-center gap-2 mb-3">
-              <Filter class="w-4 h-4" />
-              <h3 class="font-medium">按网盘类型筛选</h3>
+          <div class="px-4">
+            <div v-if="cloudLoading" class="flex items-center justify-center py-12">
+              <Spin :spinning="cloudLoading" tip="正在搜索网盘资源..." />
             </div>
-            <div class="flex flex-wrap gap-2">
-              <RadioGroup v-model:value="selectedPlatform">
-                <Badge v-for="platform in platforms" :key="platform" :count="platformCounts[platform]">
-                  <RadioButton :key="platform" :value="platform">{{ platform }}</RadioButton>
-                </Badge>
-              </RadioGroup>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div v-if="filteredCloudResults.length > 0">
+            <div v-if="cloudResults.length > 0" class="mb-4">
+              <div class="flex items-center gap-2 mb-3">
+                <Filter class="w-4 h-4" />
+                <h3 class="font-medium">按网盘类型筛选</h3>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <RadioGroup v-model:value="selectedPlatform">
+                  <Badge v-for="platform in platforms" :key="platform" :count="platformCounts[platform]">
+                    <RadioButton :key="platform" :value="platform">{{ platform }}</RadioButton>
+                  </Badge>
+                </RadioGroup>
+              </div>
+              <div
+                v-if="filteredCloudResults.length > 0"
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-items-center"
+              >
                 <MediaCard
                   v-for="item in filteredCloudResults"
                   :key="item.id"
@@ -218,7 +224,7 @@
                   @click="handleMediaClick(item as any)"
                 />
               </div>
-              <div v-else class="col-span-full text-center py-8">
+              <div v-else class="text-center py-8">
                 <p class="text-muted-foreground">没有找到符合条件的{{ selectedPlatform }}资源</p>
               </div>
             </div>
@@ -237,4 +243,47 @@
     </div>
   </div>
 </template>
-<style scoped></style>
+<style scoped>
+  /* 确保MediaCard在grid中居中显示 */
+  .grid {
+    place-items: center;
+  }
+
+  /* 移动端网格适配 */
+  @media (max-width: 768px) {
+    .grid-cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .md\:grid-cols-4 {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .lg\:grid-cols-3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .xl\:grid-cols-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .grid-cols-2 {
+      grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    }
+
+    .md\:grid-cols-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .lg\:grid-cols-3,
+    .xl\:grid-cols-4 {
+      grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    }
+
+    .gap-4 {
+      gap: 8px !important;
+    }
+  }
+</style>

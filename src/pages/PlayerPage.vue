@@ -11,7 +11,6 @@
     ArrowUpDown,
     ChevronRight,
     ListVideo,
-    Play,
     Info,
     Calendar,
     Star,
@@ -52,15 +51,9 @@
   const playHistoryStore = usePlayHistoryStore();
   const { fetchWithProxy } = useProxy();
   const sortOrder = ref<'asc' | 'desc'>('asc');
-  // 获取可用的采集站
-  const availableSources = computed(() => {
-    return siteStore.getSelectedSites.value
-      .map((site) => ({
-        key: site?.key || '',
-        name: site?.name || '未知站点',
-      }))
-      .filter((site) => site.key);
-  });
+  // 可用的采集站（动态搜索结果）
+  const availableSources = ref<{ key: string; name: string }[]>([]);
+  const searchingOtherSources = ref(false);
   const searchParams = ref();
   const skipStart = ref<number>(0);
   const skipEnd = ref<number>(0);
@@ -115,7 +108,7 @@
     console.log('创建新的播放器实例，URL:', currentVideoUrl.value);
 
     const currentEpisodeNumber = currentEpisode.value?.number || '1';
-    const playerId = `morphotv-${vodId.value}-${sourceKey.value || 'default'}-${currentEpisodeNumber}`;
+    const playerId = `itv-${vodId.value}-${sourceKey.value || 'default'}-${currentEpisodeNumber}`;
 
     try {
       const art = new Artplayer({
@@ -305,6 +298,7 @@
   };
 
   // 播放下一集
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const playNextEpisode = () => {
     if (nextEpisode.value) {
       handleEpisodeSelect(nextEpisode.value);
@@ -312,6 +306,7 @@
   };
 
   // 播放上一集
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const playPrevEpisode = () => {
     if (prevEpisode.value) {
       handleEpisodeSelect(prevEpisode.value);
@@ -389,6 +384,9 @@
         // 成功获取详情，清除错误状态
         fetchError.value = false;
         errorMessage.value = '';
+
+        // 搜索其他采集站中的相同影片
+        await searchOtherSources();
       } else {
         throw new Error(data.msg || '无法获取视频详情');
       }
@@ -440,6 +438,13 @@
   const handleSourceChange = async (key: string) => {
     console.log('切换采集站:', key);
 
+    // 保存当前影片信息，用于在新采集站中搜索
+    const currentMovieName = movieDetails.value?.vod_name;
+    if (!currentMovieName) {
+      console.error('无法获取当前影片名称');
+      return;
+    }
+
     // 保存当前采集站作为上一个采集站
     if (sourceKey.value && sourceKey.value !== key) {
       previousSourceKey.value = sourceKey.value;
@@ -462,9 +467,16 @@
     playerKey.value += 1;
 
     try {
-      // 重新获取数据
-      await fetchDetails();
-      console.log('采集站切换完成');
+      // 在新采集站中搜索相同影片
+      const newVodId = await searchMovieInSource(key, currentMovieName);
+      if (newVodId) {
+        vodId.value = newVodId;
+        // 重新获取数据
+        await fetchDetails();
+        console.log('采集站切换完成');
+      } else {
+        throw new Error('在新采集站中未找到相同影片');
+      }
     } catch (error) {
       console.error('采集站切换失败:', error);
       fetchError.value = true;
@@ -485,6 +497,92 @@
   // 刷新页面
   const refreshPage = () => {
     window.location.reload();
+  };
+
+  // 在指定采集站中搜索影片并返回vodId
+  const searchMovieInSource = async (sourceKey: string, movieName: string): Promise<string | null> => {
+    try {
+      const allSites = siteStore.getSelectedSites.value.filter((site) => site?.key);
+      const targetSite = allSites.find((site) => site?.key === sourceKey);
+
+      if (!targetSite?.api) {
+        console.error(`未找到采集站: ${sourceKey}`);
+        return null;
+      }
+
+      const targetUrl = `${targetSite.api}/api.php/provide/vod/?ac=videolist&wd=${encodeURIComponent(movieName)}`;
+      console.log(`在采集站 ${targetSite.name} 中搜索影片: ${movieName}`);
+
+      const response = await fetchWithProxy(targetUrl);
+      if (!response.ok) {
+        console.error(`采集站 ${targetSite.name} 响应失败:`, response.status);
+        return null;
+      }
+
+      const data = await response.json();
+
+      if (data.code === 1 && data.list && Array.isArray(data.list)) {
+        // 寻找完全匹配的影片
+        const exactMatch = data.list.find((item: any) => item.vod_name === movieName);
+
+        if (exactMatch) {
+          console.log(`在采集站 ${targetSite.name} 找到匹配影片，vodId: ${exactMatch.vod_id}`);
+          return String(exactMatch.vod_id);
+        } else {
+          console.log(`采集站 ${targetSite.name} 没有找到完全匹配的影片`);
+          return null;
+        }
+      } else {
+        console.log(`采集站 ${targetSite.name} 返回数据格式错误:`, data);
+        return null;
+      }
+    } catch (error) {
+      console.error(`在采集站 ${sourceKey} 中搜索影片时出错:`, error);
+      return null;
+    }
+  };
+
+  // 搜索其他采集站中的相同影片
+  const searchOtherSources = async () => {
+    if (!movieDetails.value?.vod_name) return;
+
+    console.log('开始搜索其他采集站...');
+    searchingOtherSources.value = true;
+    const sources: { key: string; name: string }[] = [];
+
+    try {
+      const allSites = siteStore.getSelectedSites.value.filter((site) => site?.key);
+
+      // 按照原始顺序处理采集站，不优先处理当前采集站
+      for (const site of allSites) {
+        if (!site?.key || !site?.api) continue;
+
+        // 对所有采集站使用相同的处理逻辑
+        if (site.key === sourceKey.value) {
+          // 当前采集站直接添加
+          sources.push({ key: site.key, name: site.name || '未知站点' });
+        } else {
+          // 使用新的搜索函数确保找到相同影片
+          const foundVodId = await searchMovieInSource(site.key, movieDetails.value!.vod_name);
+
+          if (foundVodId) {
+            console.log(`在采集站 ${site.name} 找到匹配影片，vodId: ${foundVodId}`);
+            sources.push({ key: site.key, name: site.name || '未知站点' });
+          } else {
+            console.log(`采集站 ${site.name} 没有找到匹配影片`);
+          }
+        }
+      }
+
+      // 保持原始顺序，不进行排序
+
+      availableSources.value = sources;
+      console.log('搜索完成，可用采集站:', sources);
+    } catch (error) {
+      console.error('搜索其他采集站时出错:', error);
+    } finally {
+      searchingOtherSources.value = false;
+    }
   };
 
   // 写入播放记录
@@ -784,12 +882,7 @@
                     自动播放下一集
                   </Checkbox>
                   <!-- 排序按钮 -->
-                  <Button
-                    variant="ghost"
-                    @click="toggleSortOrder"
-                    class="text-muted-foreground hover:text-primary hover:bg-primary/10 px-3 py-1 rounded-md transition-colors whitespace-nowrap min-w-fit"
-                    style="font-size: 13px !important"
-                  >
+                  <Button variant="ghost" @click="toggleSortOrder" class="sort-button">
                     <div class="icon-text-row" style="display: flex; align-items: center; gap: 6px">
                       <ArrowUpDown style="width: 14px !important; height: 14px !important; flex-shrink: 0" />
                       <span style="font-size: 13px !important">{{ sortOrder === 'asc' ? '正序' : '倒序' }}</span>
@@ -806,17 +899,16 @@
                     v-for="ep in sortedEpisodes"
                     :key="`${ep.number}_${ep.url}`"
                     :checked="currentSource === ep.url"
-                    class="relative episode-checkable-tag"
-                    style="height: 24px; display: flex; align-items: center; justify-content: center"
+                    class="relative episode-tag"
                     @change="() => handleEpisodeSelect(ep)"
                   >
                     {{ ep.number }}
                     <!-- 当前播放指示器 -->
                     <div
                       v-if="currentSource === ep.url"
-                      class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center animate-pulse z-10"
+                      class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full flex items-center justify-center z-20 episode-indicator"
                     >
-                      <Play class="w-2 h-2 text-white fill-white" />
+                      <div class="w-1 h-1 bg-white rounded-full"></div>
                     </div>
                   </CheckableTag>
                 </div>
@@ -828,32 +920,35 @@
               <div class="mb-6 pb-4 border-b border-border/30 icon-text-row text-lg">
                 <Globe class="icon-lg text-primary" />
                 <h3 class="text font-semibold">采集站切换</h3>
+                <div v-if="searchingOtherSources" class="ml-auto text-sm text-muted-foreground">搜索中...</div>
               </div>
               <div class="space-y-4">
-                <Button
-                  v-for="source in availableSources"
-                  :key="source.key"
-                  :variant="sourceKey === source.key ? 'default' : 'outline'"
-                  class="w-full justify-between transition-all duration-200 min-h-[44px]"
-                  :class="{
-                    'bg-primary text-primary-foreground hover:bg-primary/90': sourceKey === source.key,
-                    'border-border/50 hover:border-primary/50 hover:bg-primary/5': sourceKey !== source.key,
-                  }"
-                  style="font-size: 13px !important"
-                  @click="handleSourceChange(source.key)"
-                >
-                  <div
-                    class="icon-text-row text-sm"
-                    style="display: flex; align-items: center; gap: 6px; font-size: 13px"
+                <!-- 搜索中的提示 -->
+                <div v-if="searchingOtherSources && availableSources.length === 0" class="text-center py-4">
+                  <div class="text-muted-foreground text-sm">正在搜索可用的采集站...</div>
+                </div>
+
+                <!-- 没有找到可用采集站的提示 -->
+                <div v-else-if="!searchingOtherSources && availableSources.length === 0" class="text-center py-4">
+                  <div class="text-muted-foreground text-sm">未找到包含此影片的采集站</div>
+                </div>
+
+                <!-- 采集站列表 -->
+                <div class="source-buttons-container">
+                  <Button
+                    v-for="source in availableSources"
+                    :key="source.key"
+                    :type="sourceKey === source.key ? 'primary' : 'default'"
+                    class="source-button"
+                    @click="handleSourceChange(source.key)"
                   >
-                    <Globe style="width: 14px !important; height: 14px !important; flex-shrink: 0" />
-                    <span style="font-size: 13px !important">{{ source.name }}</span>
-                  </div>
-                  <ChevronRight
-                    v-if="sourceKey === source.key"
-                    style="width: 14px !important; height: 14px !important; flex-shrink: 0"
-                  />
-                </Button>
+                    <div class="source-button-content">
+                      <Globe class="source-button-icon" />
+                      <span class="source-button-text">{{ source.name }}</span>
+                    </div>
+                    <ChevronRight v-if="sourceKey === source.key" class="source-button-arrow" />
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>
@@ -890,6 +985,7 @@
   /* 文本截断样式 */
   .line-clamp-2 {
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -897,6 +993,7 @@
 
   .line-clamp-3 {
     display: -webkit-box;
+    line-clamp: 3;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -1045,5 +1142,271 @@
   .player-page .ant-btn.w-full svg {
     width: 14px !important;
     height: 14px !important;
+  }
+
+  /* 剧集标签样式 - 使用Ant Design Vue主题变量 */
+  .episode-tag {
+    height: 36px !important;
+    min-width: 52px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    position: relative !important;
+    margin: 2px !important;
+    user-select: none !important;
+  }
+
+  /* 未选中状态 - 使用Ant Design Vue主题变量 */
+  .episode-tag:not(.ant-tag-checkable-checked) {
+    background: #f5f5f5 !important;
+    border: 1px solid #d9d9d9 !important;
+    color: #595959 !important;
+  }
+
+  .episode-tag:not(.ant-tag-checkable-checked):hover {
+    background: #e6f4ff !important;
+    border-color: #40a9ff !important;
+    color: #1677ff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(22, 119, 255, 0.15) !important;
+  }
+
+  /* 选中状态 - 使用Ant Design Vue主题变量 */
+  .episode-tag.ant-tag-checkable-checked {
+    background: #1677ff !important;
+    border: 1px solid #1677ff !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(22, 119, 255, 0.3) !important;
+    z-index: 1 !important;
+  }
+
+  .episode-tag.ant-tag-checkable-checked:hover {
+    background: #4096ff !important;
+    border-color: #4096ff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(22, 119, 255, 0.4) !important;
+  }
+
+  /* 暗色主题适配 */
+  .dark .episode-tag:not(.ant-tag-checkable-checked) {
+    background: #1f1f1f !important;
+    border: 1px solid #434343 !important;
+    color: #a6a6a6 !important;
+  }
+
+  .dark .episode-tag:not(.ant-tag-checkable-checked):hover {
+    background: #111b26 !important;
+    border-color: #177ddc !important;
+    color: #91caff !important;
+  }
+
+  /* 采集站按钮容器 */
+  .source-buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* 采集站按钮样式 - 使用Ant Design Vue主题变量 */
+  .source-button {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    min-height: 48px !important;
+    border-radius: 8px !important;
+    border-width: 1px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    transition: all 0.2s ease !important;
+    font-size: 14px !important;
+    padding: 12px 16px !important;
+  }
+
+  /* 按钮内容布局 */
+  .source-button-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  .source-button-icon {
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0;
+    margin-right: 4px;
+  }
+
+  .source-button-text {
+    font-size: 14px !important;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .source-button-arrow {
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0;
+    opacity: 0.7;
+    margin-left: auto;
+  }
+
+  /* 滚动条样式 - 使用Ant Design Vue主题变量 */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px !important;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: var(--ant-color-fill-quaternary) !important;
+    border-radius: 3px !important;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--ant-color-border) !important;
+    border-radius: 3px !important;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--ant-color-text-secondary) !important;
+  }
+
+  /* 排序按钮样式 - 使用Ant Design Vue默认样式 */
+  .sort-button {
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    min-width: fit-content !important;
+  }
+
+  /* 移动端适配 */
+  @media (max-width: 768px) {
+    /* 播放页面布局调整 */
+    .player-page .flex.gap-8 {
+      flex-direction: column !important;
+      gap: 16px !important;
+    }
+
+    /* 剧集标签移动端适配 */
+    .episode-tag {
+      height: 28px !important;
+      min-width: 40px !important;
+      font-size: 12px !important;
+    }
+
+    /* 采集站按钮移动端适配 */
+    .source-button {
+      min-height: 40px !important;
+      font-size: 12px !important;
+    }
+
+    .source-button-text {
+      font-size: 12px !important;
+    }
+
+    .source-buttons-container {
+      gap: 8px;
+    }
+
+    /* 网格布局调整 */
+    .grid-cols-4 {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .grid-cols-5 {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+
+    .grid-cols-6 {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+
+    /* 卡片间距调整 */
+    .gap-8 {
+      gap: 16px !important;
+    }
+
+    /* 内边距调整 */
+    .px-4 {
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+    }
+
+    .py-8 {
+      padding-top: 16px !important;
+      padding-bottom: 16px !important;
+    }
+  }
+
+  /* 小屏幕适配 */
+  @media (max-width: 480px) {
+    /* 剧集标签小屏幕适配 */
+    .episode-tag {
+      height: 24px !important;
+      min-width: 36px !important;
+      font-size: 11px !important;
+    }
+
+    /* 采集站按钮小屏幕适配 */
+    .source-button {
+      min-height: 36px !important;
+      font-size: 11px !important;
+    }
+
+    .source-button-text {
+      font-size: 11px !important;
+    }
+
+    .source-button-icon,
+    .source-button-arrow {
+      width: 12px !important;
+      height: 12px !important;
+    }
+
+    .source-buttons-container {
+      gap: 6px;
+    }
+
+    /* 网格布局进一步调整 */
+    .grid-cols-4,
+    .grid-cols-5,
+    .grid-cols-6 {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    /* 间距进一步缩小 */
+    .gap-2 {
+      gap: 4px !important;
+    }
+
+    .gap-4 {
+      gap: 8px !important;
+    }
+
+    /* 内边距进一步调整 */
+    .px-4 {
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+    }
+
+    .py-8 {
+      padding-top: 12px !important;
+      padding-bottom: 12px !important;
+    }
+
+    /* 按钮图标和文字大小调整 */
+    .player-page button.ant-btn .icon-text-row svg {
+      width: 12px !important;
+      height: 12px !important;
+    }
+
+    .player-page button.ant-btn .icon-text-row span {
+      font-size: 11px !important;
+    }
   }
 </style>

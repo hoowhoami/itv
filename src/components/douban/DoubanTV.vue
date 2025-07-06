@@ -34,8 +34,8 @@
   });
 </script>
 <template>
-  <div class="mt-6">
-    <div class="flex gap-2 mb-6">
+  <div class="pt-4">
+    <div class="flex gap-2 mb-6 px-4">
       <RadioGroup v-model:value="activeCategory">
         <RadioButton v-for="category in categories" :key="category.id" :value="category.id">
           {{ category.name }}
@@ -43,7 +43,7 @@
       </RadioGroup>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 justify-items-center px-4">
       <MediaCard
         v-for="item in list"
         :key="item.id"
@@ -60,4 +60,35 @@
     </div>
   </div>
 </template>
-<style scoped></style>
+<style scoped>
+  /* 确保MediaCard在grid中居中显示 */
+  .grid {
+    place-items: center;
+  }
+
+  /* 移动端网格适配 */
+  @media (max-width: 768px) {
+    .grid-cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .md\:grid-cols-4 {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .lg\:grid-cols-6 {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .grid-cols-2 {
+      grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    }
+
+    .md\:grid-cols-4,
+    .lg\:grid-cols-6 {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+  }
+</style>

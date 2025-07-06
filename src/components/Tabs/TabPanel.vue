@@ -1,12 +1,5 @@
-<template>
-  <div v-show="false">
-    <!-- 使用插槽捕获内容 -->
-    <slot />
-  </div>
-</template>
-
 <script setup lang="ts">
-  import { defineProps, inject, getCurrentInstance, onMounted, markRaw } from 'vue';
+  import { inject, onMounted, onUnmounted, useSlots } from 'vue';
   import type { TabItem } from './index.vue';
 
   defineOptions({
@@ -19,17 +12,24 @@
   }
 
   const props = defineProps<Props>();
+  const slots = useSlots();
 
-  const registerTabPanel = inject<(tab: Omit<TabItem, 'contentComponent'>) => void>('registerTabPanel')!;
+  const registerTabPanel = inject<(tab: TabItem) => void>('registerTabPanel');
+  const unregisterTabPanel = inject<(key: string) => void>('unregisterTabPanel');
 
   onMounted(() => {
-    // 获取组件内容
-    const content = getCurrentInstance()?.slots.default?.() || null;
+    if (registerTabPanel) {
+      registerTabPanel({
+        key: props.tab,
+        label: props.label || props.tab,
+        content: () => slots.default?.() || [],
+      });
+    }
+  });
 
-    registerTabPanel({
-      key: props.tab,
-      label: props.label || props.tab,
-      content: content ? markRaw(content) : null, // 使用 markRaw 标记内容
-    });
+  onUnmounted(() => {
+    if (unregisterTabPanel) {
+      unregisterTabPanel(props.tab);
+    }
   });
 </script>
