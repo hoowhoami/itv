@@ -259,6 +259,12 @@
     box-shadow:
       0 10px 15px -3px rgb(0 0 0 / 0.1),
       0 4px 6px -4px rgb(0 0 0 / 0.1);
+    color: white !important;
+  }
+
+  /* 删除按钮 */
+  .delete-btn {
+    color: white !important;
   }
 
   /* 标题区域 */

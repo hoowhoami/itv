@@ -121,7 +121,7 @@
             >
             <div class="flex items-center gap-2">
               <Tooltip>
-                <template #title>添加云盘搜索站点</template>
+                <template #title>添加网盘搜索站点</template>
                 <Button @click="handleAddDrive">
                   <Plus class="w-4 h-4" />
                 </Button>
@@ -129,7 +129,7 @@
             </div>
           </div>
         </template>
-        <CheckboxGroup v-model:value="selectedKeys">
+        <CheckboxGroup v-model:value="selectedKeys" class="w-full">
           <ListItem v-for="item in drives" :key="item.key" class="w-full">
             <div class="flex flex-row items-center justify-between w-full">
               <div>
@@ -144,7 +144,7 @@
             <template #actions>
               <div class="flex items-center justify-center w-full">
                 <Popconfirm v-if="item.deletable" title="确定要删除吗？" @confirm="handleDeleteDrive(item)">
-                  <Button size="small" type="dashed" danger>
+                  <Button type="link" danger>
                     <Trash2 class="w-4 h-4" />
                   </Button>
                 </Popconfirm>

@@ -103,7 +103,7 @@
             <input ref="fileInput" type="file" accept=".json" class="hidden" @change="handleImportData" />
           </Button>
         </div>
-        <Button class="w-full" type="dashed" danger @click="handleClearLocalData">清空本地数据</Button>
+        <Button class="w-full" danger @click="handleClearLocalData">清空本地数据</Button>
       </div>
     </div>
   </div>

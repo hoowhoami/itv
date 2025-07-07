@@ -94,7 +94,7 @@
           <template #actions>
             <div class="flex items-center justify-center w-full">
               <Popconfirm v-if="item.deletable" title="确定要删除吗？" @confirm="handleDeleteParser(item)">
-                <Button size="small" type="dashed" danger>
+                <Button type="link" danger>
                   <Trash2 class="w-4 h-4" />
                 </Button>
               </Popconfirm>

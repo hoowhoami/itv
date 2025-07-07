@@ -183,7 +183,7 @@
             </div>
           </div>
         </template>
-        <CheckboxGroup v-model:value="selectedKeys" class="w-full">
+        <CheckboxGroup v-model:value="selectedKeys">
           <ListItem v-for="item in sites" :key="item.key" class="w-full">
             <div class="flex flex-row items-center justify-between w-full">
               <div>
@@ -203,7 +203,7 @@
             <template #actions>
               <div class="flex items-center justify-center w-full">
                 <Popconfirm v-if="item.deletable" title="确定要删除吗？" @confirm="handleDeleteSite(item)">
-                  <Button type="link" danger>
+                  <Button size="small" type="dashed" danger>
                     <Trash2 class="w-4 h-4" />
                   </Button>
                 </Popconfirm>
