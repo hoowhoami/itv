@@ -2,9 +2,11 @@
   import { computed, onMounted, ref, watch } from 'vue';
   import Tabs from '@/components/Tabs/index.vue';
   import TabPanel from '@/components/Tabs/TabPanel.vue';
-  import { RadioButton, RadioGroup, Spin, message, Badge } from 'ant-design-vue';
-  import { Filter, Search } from 'lucide-vue-next';
+  import { Spin, message } from 'ant-design-vue';
+  import { Search, Loader2 } from 'lucide-vue-next';
   import MediaCard from '@/components/MediaCard.vue';
+  import CloudResourceCard from '@/components/CloudResourceCard.vue';
+  import CloudResourceFilter from '@/components/CloudResourceFilter.vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useDriveStore, useSiteStore } from '@/store';
   import { useProxy } from '@/hooks/use-proxy';
@@ -47,20 +49,15 @@
   const cloudResults = ref<CloudResource[]>([]);
   const activeKey = ref<'movie' | 'cloud'>('movie');
   const loading = ref(false);
+  const hasNoData = ref(false);
   const movieLoading = ref(false);
   const cloudLoading = ref(false);
-  const selectedPlatform = ref('');
+  const selectedPlatform = ref('all');
   const route = useRoute();
   const router = useRouter();
   const siteStore = useSiteStore();
   const driveStore = useDriveStore();
   const { fetchWithProxy } = useProxy();
-
-  const platforms = computed(() => {
-    const rs = new Set<string>();
-    cloudResults.value.forEach((resource) => rs.add(resource.platform));
-    return Array.from(['all', ...rs]);
-  });
 
   const platformCounts = computed<Record<string, number>>(() => {
     const counts: Record<string, number> = { all: cloudResults.value.length };
@@ -72,6 +69,14 @@
       }
     });
     return counts;
+  });
+
+  const movieCount = computed(() => {
+    return movieResults.value.length;
+  });
+
+  const cloudCount = computed(() => {
+    return cloudResults.value.length;
   });
 
   const filteredCloudResults = computed<CloudResource[]>(() => {
@@ -116,6 +121,25 @@
       return host;
     } catch {
       return '未知平台';
+    }
+  };
+
+  // 格式化时间为相对时间
+  const formatTimeAgo = (dateStr: string): string => {
+    try {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return '今天';
+      if (diffDays === 1) return '1天前';
+      if (diffDays < 7) return `${diffDays}天前`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)}个月前`;
+      return `${Math.floor(diffDays / 365)}年前`;
+    } catch {
+      return '未知时间';
     }
   };
 
@@ -213,6 +237,9 @@
             if (!response.ok) return [];
             const data = await response.json();
             if (data.code === 1 && data.list) {
+              if (data.list.length > 0) {
+                loading.value = false;
+              }
               return data.list.map((item: Movie) => ({
                 id: item.vod_id,
                 title: item.vod_name,
@@ -245,11 +272,35 @@
     }
   };
 
+  // 搜索影视资源（包含重试逻辑）
+  const searchMovieResourcesWithRetry = async (query: string) => {
+    await performSearch(query);
+    if (!movieResults.value.length) {
+      const clearName = clearString(query);
+      if (clearName !== query) {
+        console.log('影视资源处理名称后再次搜索:', query, clearName);
+        await performSearch(clearName);
+      }
+    }
+  };
+
+  // 搜索网盘资源（包含重试逻辑）
+  const searchCloudResourcesWithRetry = async (query: string) => {
+    await searchCloudResources(query);
+    if (!cloudResults.value.length) {
+      const clearName = clearString(query);
+      if (clearName !== query) {
+        console.log('网盘资源处理名称后再次搜索:', query, clearName);
+        await searchCloudResources(clearName);
+      }
+    }
+  };
+
   // 搜索网盘资源
   const searchCloudResources = async (query: string) => {
     // 获取所有启用的网盘资源站
-    const selectedDrives = driveStore.getSelectedDrives;
-    if (selectedDrives.value.length === 0) {
+    const selectedDrives = driveStore.getSelectedDrives.value;
+    if (selectedDrives.length === 0) {
       cloudResults.value = [];
       return;
     }
@@ -257,14 +308,18 @@
     const results: CloudResource[] = [];
     try {
       // 并行搜索所有启用的站点
-      const searchPromises = selectedDrives.value.map(async (drive) => {
+      const searchPromises = selectedDrives.map(async (drive) => {
         if (drive) {
           try {
             const searchUrl = replaceKeywordInUrl(drive.url, query);
             const response = await fetchWithProxy(searchUrl);
             if (!response.ok) throw new Error(`站点 ${drive.name} 请求失败`);
             const html = await response.text();
-            return extractCloudInfoByTG(html, drive.name);
+            const list = extractCloudInfoByTG(html, drive.name);
+            if (list.length > 0) {
+              loading.value = false;
+            }
+            return list;
           } catch (error) {
             console.error(`搜索站点 ${drive.name} 失败:`, error);
             return [];
@@ -315,27 +370,9 @@
     console.log('开始搜索:', newSearchQuery, newSearchKey);
     // loading
     loading.value = true;
-    // 影视资源
-    await performSearch(newSearchQuery);
-    if (!movieResults.value.length) {
-      const clearName = clearString(searchQuery.value);
-      if (clearName !== searchQuery.value) {
-        console.log('处理名称后再次搜索:', searchQuery.value, clearName);
-        // 如果没有搜索到结果 且搜索关键字包含特殊字符，则清除特殊字符再次搜索
-        await performSearch(clearName);
-      }
-    }
+    // 并行执行影视资源和网盘资源搜索
+    await Promise.all([searchMovieResourcesWithRetry(newSearchQuery), searchCloudResourcesWithRetry(newSearchQuery)]);
     loading.value = false;
-    // 网盘资源
-    await searchCloudResources(newSearchQuery);
-    if (!cloudResults.value.length) {
-      const clearName = clearString(searchQuery.value);
-      if (clearName !== searchQuery.value) {
-        console.log('处理名称后再次搜索:', searchQuery.value, clearName);
-        // 如果没有搜索到结果 且搜索关键字包含特殊字符，则清除特殊字符再次搜索
-        await searchCloudResources(clearName);
-      }
-    }
   });
 </script>
 <template>
@@ -345,14 +382,31 @@
         <h1 class="text-2xl font-bold mb-2">搜索结果</h1>
         <p class="text-muted-foreground">关键词："{{ searchQuery }}"</p>
       </div>
-      <div
-        v-if="loading && movieResults.length === 0 && cloudResults.length === 0"
-        class="flex items-center justify-center py-12"
-      >
+      <div v-if="loading" class="flex items-center justify-center py-12">
         <Spin :spinning="loading" tip="正在搜索..." />
       </div>
       <Tabs v-if="movieResults.length > 0 || cloudResults.length > 0" v-model:activeKey="activeKey">
-        <TabPanel tab="movie" :label="`影视作品 (${movieResults.length})`">
+        <template #movie-tab="{ tab }">
+          <div class="flex items-center justify-center">
+            <div>
+              {{ `${tab.label} (${movieCount})` }}
+            </div>
+            <div class="ml-2">
+              <Loader2 v-if="movieLoading" class="w-4 h-4 animate-spin" />
+            </div>
+          </div>
+        </template>
+        <template #cloud-tab="{ tab }">
+          <div class="flex items-center justify-center">
+            <div>
+              {{ `${tab.label} (${cloudCount})` }}
+            </div>
+            <div class="ml-2">
+              <Loader2 v-if="cloudLoading" class="w-4 h-4 animate-spin" />
+            </div>
+          </div>
+        </template>
+        <TabPanel tab="movie" label="影视作品">
           <div class="pt-4">
             <div v-if="movieLoading" class="flex items-center justify-center py-12">
               <Spin :spinning="movieLoading" tip="正在搜索影视作品..." />
@@ -377,36 +431,35 @@
             </div>
           </div>
         </TabPanel>
-        <TabPanel tab="cloud" :label="`网盘资源 (${cloudResults.length})`">
-          <div class="px-4">
+        <TabPanel tab="cloud" label="网盘资源">
+          <div class="pt-4">
             <div v-if="cloudLoading" class="flex items-center justify-center py-12">
               <Spin :spinning="cloudLoading" tip="正在搜索网盘资源..." />
             </div>
-            <div v-if="cloudResults.length > 0" class="mb-4">
-              <div class="flex items-center gap-2 mb-3">
-                <Filter class="w-4 h-4" />
-                <h3 class="font-medium">按网盘类型筛选</h3>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <RadioGroup v-model:value="selectedPlatform">
-                  <Badge v-for="platform in platforms" :key="platform" :count="platformCounts[platform]">
-                    <RadioButton :key="platform" :value="platform">{{ platform }}</RadioButton>
-                  </Badge>
-                </RadioGroup>
-              </div>
+            <div v-else>
+              <CloudResourceFilter
+                v-if="cloudResults.length > 0"
+                :platform-counts="platformCounts"
+                :selected-platform="selectedPlatform"
+                :total-count="cloudCount"
+                @update:selected-platform="selectedPlatform = $event"
+              />
               <div
                 v-if="filteredCloudResults.length > 0"
-                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center"
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4"
               >
-                <MediaCard
+                <CloudResourceCard
                   v-for="item in filteredCloudResults"
                   :key="item.id"
                   :title="item.title"
-                  :cover="item.poster"
+                  :platform="item.platform"
+                  :time-ago="formatTimeAgo(item.publishTime)"
                   :source="item.sourceChannel"
-                  :remark="item.platform"
-                  @click="handleMediaClick(item as any)"
+                  :link="item.shareUrl"
                 />
+              </div>
+              <div v-else-if="cloudResults.length === 0" class="text-center py-8">
+                <p class="text-muted-foreground">没有找到网盘资源</p>
               </div>
               <div v-else class="text-center py-8">
                 <p class="text-muted-foreground">没有找到符合条件的{{ selectedPlatform }}资源</p>
@@ -415,10 +468,7 @@
           </div>
         </TabPanel>
       </Tabs>
-      <div
-        v-if="!loading && movieResults.length === 0 && cloudResults.length === 0 && searchQuery"
-        class="text-center py-12"
-      >
+      <div v-if="hasNoData && searchQuery" class="text-center py-12">
         <Search class="w-16 h-16 mx-auto text-muted-foreground mb-4" />
         <h3 class="text-lg font-semibold mb-2">未找到相关资源</h3>
         <p class="text-muted-foreground mb-4">没有找到与 "{{ searchQuery }}" 相关的影视作品或网盘资源</p>

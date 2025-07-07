@@ -19,11 +19,17 @@
           v-if="modelValue === tab.key"
           class="absolute inset-[2px] z-10 rounded-md border-1 border-primary bg-white dark:bg-sidebar flex items-center justify-center"
         >
-          {{ tab.label }}
+          <!-- 优先使用标签插槽，如果没有则显示文本 -->
+          <slot v-if="hasSlotForTab(`${tab.key}-tab`)" :name="`${tab.key}-tab`" :tab="tab" :active="true" />
+          <span v-else>{{ tab.label }}</span>
         </div>
 
         <!-- 未激活标签的视觉元素 -->
-        <div v-else>{{ tab.label }}</div>
+        <div v-else>
+          <!-- 优先使用标签插槽，如果没有则显示文本 -->
+          <slot v-if="hasSlotForTab(`${tab.key}-tab`)" :name="`${tab.key}-tab`" :tab="tab" :active="false" />
+          <span v-else>{{ tab.label }}</span>
+        </div>
       </button>
     </div>
 
@@ -40,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, defineModel, provide, ref, onUnmounted } from 'vue';
+  import { computed, defineModel, provide, ref, onUnmounted, useSlots } from 'vue';
 
   defineOptions({
     // eslint-disable-next-line vue/multi-word-component-names
@@ -55,6 +61,14 @@
 
   // 使用 defineModel 实现 v-model
   const modelValue = defineModel<string>('activeKey');
+
+  // 获取插槽
+  const slots = useSlots();
+
+  // 检查是否有对应的具名插槽
+  const hasSlotForTab = (tabKey: string) => {
+    return !!slots[tabKey];
+  };
 
   // 处理标签点击
   const handleTabClick = (key: string) => {

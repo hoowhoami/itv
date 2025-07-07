@@ -39,6 +39,7 @@ export const useConfig = () => {
           INTERNAL_DRIVES.forEach((drive) => {
             driveStore.addDrive(drive);
           });
+          driveStore.setSelected(INTERNAL_DRIVES.map((drive) => drive.key));
         }
 
         resolve(true);

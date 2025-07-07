@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-background">
-    <config-provider :locale="zhCN" componentSize="middle" :theme="{ algorithm: themeMode }">
+    <config-provider :locale="zhCN" componentSize="large" :theme="{ algorithm: themeMode }">
       <app>
         <router-view :key="route.fullPath" />
         <back-top />

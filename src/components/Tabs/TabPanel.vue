@@ -1,5 +1,10 @@
+<template>
+  <!-- TabPanel 组件不直接渲染内容，内容由父组件 Tabs 管理 -->
+  <div style="display: none"></div>
+</template>
+
 <script setup lang="ts">
-  import { inject, onMounted, onUnmounted, useSlots } from 'vue';
+  import { inject, onMounted, onUnmounted, useSlots, watch } from 'vue';
   import type { TabItem } from './index.vue';
 
   defineOptions({
@@ -17,7 +22,8 @@
   const registerTabPanel = inject<(tab: TabItem) => void>('registerTabPanel');
   const unregisterTabPanel = inject<(key: string) => void>('unregisterTabPanel');
 
-  onMounted(() => {
+  // 监听 label 变化并重新注册
+  const updateTabPanel = () => {
     if (registerTabPanel) {
       registerTabPanel({
         key: props.tab,
@@ -25,7 +31,19 @@
         content: () => slots.default?.() || [],
       });
     }
+  };
+
+  onMounted(() => {
+    updateTabPanel();
   });
+
+  // 监听 label 属性变化
+  watch(
+    () => props.label,
+    () => {
+      updateTabPanel();
+    }
+  );
 
   onUnmounted(() => {
     if (unregisterTabPanel) {
